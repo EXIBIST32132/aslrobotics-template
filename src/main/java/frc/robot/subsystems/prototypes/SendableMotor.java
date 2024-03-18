@@ -22,10 +22,10 @@ class SendableMotor implements Sendable, Subsystem {
     NEO550(new Constants(0, 41, -11000, 11000)),
     VORTEX(new Constants(0, 7167, -6784, 6784));
 
-//    BASE_FALCON(new Constants(0, 2047, -6380, 6380)),
-//    PRO_FALCON(new Constants(0, 2047, -6080, 6080)),
-//    BASE_KRAKEN(new Constants(0, 2047, -6000, 6000)),
-//    PRO_KRAKEN(new Constants(0, 2047, -5800, 5800));
+    //    BASE_FALCON(new Constants(0, 2047, -6380, 6380)),
+    //    PRO_FALCON(new Constants(0, 2047, -6080, 6080)),
+    //    BASE_KRAKEN(new Constants(0, 2047, -6000, 6000)),
+    //    PRO_KRAKEN(new Constants(0, 2047, -5800, 5800));
 
     final Constants constants;
 
@@ -33,9 +33,7 @@ class SendableMotor implements Sendable, Subsystem {
       this.constants = constants;
     }
 
-    record Constants(int lowerPos, int upperPos, int lowerVel, int upperVel) {
-
-    }
+    record Constants(int lowerPos, int upperPos, int lowerVel, int upperVel) {}
   }
 
   private final CANSparkBase motor;
@@ -49,10 +47,17 @@ class SendableMotor implements Sendable, Subsystem {
   public double actualPos, actualVel;
   public final double LOWER_POS_LIMIT, UPPER_POS_LIMIT, LOWER_VEL_LIMIT, UPPER_VEL_LIMIT;
 
-  public SendableMotor(int id, Motor type, int lowerPosLimit, int upperPosLimit, int lowerVelLimit, int upperVelLimit) {
-    motor = type == Motor.VORTEX ?
-      new CANSparkFlex(id, MotorType.kBrushless)
-      : new CANSparkMax(id, MotorType.kBrushless);
+  public SendableMotor(
+      int id,
+      Motor type,
+      int lowerPosLimit,
+      int upperPosLimit,
+      int lowerVelLimit,
+      int upperVelLimit) {
+    motor =
+        type == Motor.VORTEX
+            ? new CANSparkFlex(id, MotorType.kBrushless)
+            : new CANSparkMax(id, MotorType.kBrushless);
     pidController = motor.getPIDController();
     m_percentSRL = new SlewRateLimiter(0.25);
     m_velocitySRL = new SlewRateLimiter(0.25);
@@ -64,14 +69,14 @@ class SendableMotor implements Sendable, Subsystem {
     this.UPPER_VEL_LIMIT = upperVelLimit;
   }
 
-  public SendableMotor(int id,
-                       Motor type) {
-    this(id,
-      type,
-      type.constants.lowerPos,
-      type.constants.upperPos,
-      type.constants.lowerVel,
-      type.constants.upperVel);
+  public SendableMotor(int id, Motor type) {
+    this(
+        id,
+        type,
+        type.constants.lowerPos,
+        type.constants.upperPos,
+        type.constants.lowerVel,
+        type.constants.upperVel);
   }
 
   public SendableMotor(int id) {
@@ -80,44 +85,38 @@ class SendableMotor implements Sendable, Subsystem {
 
   public Command profiledPositionCommand() {
     return new TrapezoidProfileCommand(
-      new TrapezoidProfile(
-        m_positionConstraints
-      ),
-      state -> pidController.setReference(state.position, ControlType.kPosition),
-      () -> new TrapezoidProfile.State(goalPos, 0.0),
-      () -> new TrapezoidProfile.State(
-        actualPos,
-        actualVel
-      ), this
-    )
-      .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
-      .onlyWhile(() -> enabled);
+            new TrapezoidProfile(m_positionConstraints),
+            state -> pidController.setReference(state.position, ControlType.kPosition),
+            () -> new TrapezoidProfile.State(goalPos, 0.0),
+            () -> new TrapezoidProfile.State(actualPos, actualVel),
+            this)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
+        .onlyWhile(() -> enabled);
   }
 
   public Command positionRangeCommand() {
     return profiledPositionCommand()
-      .alongWith(
-        Commands.repeatingSequence(
-          Commands.runOnce(() -> goalPos = goalPos == LOWER_POS_LIMIT ? UPPER_POS_LIMIT : LOWER_POS_LIMIT),
-          Commands.waitSeconds(3.0)
-        )
-      )
-      .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
-      .onlyWhile(() -> enabled);
+        .alongWith(
+            Commands.repeatingSequence(
+                Commands.runOnce(
+                    () -> goalPos = goalPos == LOWER_POS_LIMIT ? UPPER_POS_LIMIT : LOWER_POS_LIMIT),
+                Commands.waitSeconds(3.0)))
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
+        .onlyWhile(() -> enabled);
   }
 
   public Command profiledPercentCommand() {
     return this.run(() -> motor.set(m_percentSRL.calculate(goalPercent)))
-      .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
-      .onlyWhile(() -> enabled);
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
+        .onlyWhile(() -> enabled);
   }
 
   public Command profiledVelocityCommand() {
-    return this.run(() ->
-        pidController.setReference(m_velocitySRL.calculate(goalVel), ControlType.kVelocity)
-      )
-      .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
-      .onlyWhile(() -> enabled);
+    return this.run(
+            () ->
+                pidController.setReference(m_velocitySRL.calculate(goalVel), ControlType.kVelocity))
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
+        .onlyWhile(() -> enabled);
   }
 
   public Command toggleEnable() {

@@ -13,6 +13,8 @@
 
 package frc.robot.subsystems.flywheel;
 
+import static frc.robot.Constants.ShooterMap.GEAR_RATIO;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -23,8 +25,6 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.util.Units;
-
-import static frc.robot.Constants.ShooterMap.GEAR_RATIO;
 
 public class FlywheelIOTalonFX implements FlywheelIO {
 
@@ -56,11 +56,12 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   public void updateInputs(FlywheelIOInputs inputs) {
     BaseStatusSignal.refreshAll(
         leaderPosition, leaderVelocity, leaderAppliedVolts, leaderCurrent, followerCurrent);
-    inputs.positionRad = Units.rotationsToRadians(leaderPosition.getValueAsDouble()) / GEAR_RATIO;
-    inputs.velocityRadPerSec =
+    inputs.shooterPositionRad =
+        Units.rotationsToRadians(leaderPosition.getValueAsDouble()) / GEAR_RATIO;
+    inputs.shooterVelocityRadPerSec =
         Units.rotationsToRadians(leaderVelocity.getValueAsDouble()) / GEAR_RATIO;
-    inputs.appliedVolts = leaderAppliedVolts.getValueAsDouble();
-    inputs.currentAmps =
+    inputs.shooterAppliedVolts = leaderAppliedVolts.getValueAsDouble();
+    inputs.shooterCurrentAmps =
         new double[] {leaderCurrent.getValueAsDouble(), followerCurrent.getValueAsDouble()};
   }
 

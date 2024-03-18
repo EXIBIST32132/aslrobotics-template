@@ -24,7 +24,7 @@ import frc.robot.Constants;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-public class Flywheel extends SubsystemBase {
+public class FlywheelSubsystem extends SubsystemBase {
   public enum Velocity {
     OFF(0),
     SLOW(1),
@@ -32,6 +32,7 @@ public class Flywheel extends SubsystemBase {
     FAST(6);
 
     final double velocity;
+
     Velocity(double velocityRadPerSec) {
       this.velocity = velocityRadPerSec;
     }
@@ -43,7 +44,7 @@ public class Flywheel extends SubsystemBase {
   private final SysIdRoutine sysId;
 
   /** Creates a new Flywheel. */
-  public Flywheel(FlywheelIO io) {
+  public FlywheelSubsystem(FlywheelIO io) {
     this.io = io;
 
     // Switch constants based on mode (the physics simulator is treated as a
@@ -112,11 +113,11 @@ public class Flywheel extends SubsystemBase {
   /** Returns the current velocity in RPM. */
   @AutoLogOutput
   public double getVelocityRPM() {
-    return Units.radiansPerSecondToRotationsPerMinute(inputs.velocityRadPerSec);
+    return Units.radiansPerSecondToRotationsPerMinute(inputs.shooterVelocityRadPerSec);
   }
 
   /** Returns the current velocity in radians per second. */
   public double getCharacterizationVelocity() {
-    return inputs.velocityRadPerSec;
+    return inputs.shooterVelocityRadPerSec;
   }
 }

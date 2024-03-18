@@ -13,6 +13,8 @@
 
 package frc.robot.subsystems.flywheel;
 
+import static frc.robot.Constants.ShooterMap.GEAR_RATIO;
+
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -21,8 +23,6 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.ShooterMap;
-
-import static frc.robot.Constants.ShooterMap.GEAR_RATIO;
 
 // NOTE: To use the Spark Flex / NEO Vortex, replace all instances of "CANSparkMax" with
 // "CANSparkFlex"
@@ -53,11 +53,12 @@ public class FlywheelIOSpark implements FlywheelIO {
 
   @Override
   public void updateInputs(FlywheelIOInputs inputs) {
-    inputs.positionRad = Units.rotationsToRadians(encoder.getPosition() / GEAR_RATIO);
-    inputs.velocityRadPerSec =
+    inputs.shooterPositionRad = Units.rotationsToRadians(encoder.getPosition() / GEAR_RATIO);
+    inputs.shooterVelocityRadPerSec =
         Units.rotationsPerMinuteToRadiansPerSecond(encoder.getVelocity() / GEAR_RATIO);
-    inputs.appliedVolts = leader.getAppliedOutput() * leader.getBusVoltage();
-    inputs.currentAmps = new double[] {leader.getOutputCurrent(), follower.getOutputCurrent()};
+    inputs.shooterAppliedVolts = leader.getAppliedOutput() * leader.getBusVoltage();
+    inputs.shooterCurrentAmps =
+        new double[] {leader.getOutputCurrent(), follower.getOutputCurrent()};
   }
 
   @Override

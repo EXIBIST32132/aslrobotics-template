@@ -36,10 +36,10 @@ public class FlywheelIOSim implements FlywheelIO {
 
     sim.update(0.02);
 
-    inputs.positionRad = 0.0;
-    inputs.velocityRadPerSec = sim.getAngularVelocityRadPerSec();
-    inputs.appliedVolts = appliedVolts;
-    inputs.currentAmps = new double[] {sim.getCurrentDrawAmps()};
+    inputs.shooterPositionRad = 0.0;
+    inputs.shooterVelocityRadPerSec = sim.getAngularVelocityRadPerSec();
+    inputs.shooterAppliedVolts = appliedVolts;
+    inputs.shooterCurrentAmps = new double[] {sim.getCurrentDrawAmps()};
   }
 
   @Override

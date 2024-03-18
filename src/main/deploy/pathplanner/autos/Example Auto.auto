@@ -2,25 +2,31 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 2.0,
-      "y": 7.0
+      "x": 0.7938821155420092,
+      "y": 4.423007859904609
     },
-    "rotation": 180.0
+    "rotation": 121.42704327262543
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "Run Flywheel"
+            "pathName": "SUB-STG"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Example Path"
+            "pathName": "STG-MID"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MID-AMP"
           }
         }
       ]

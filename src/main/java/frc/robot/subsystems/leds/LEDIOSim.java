@@ -2,6 +2,7 @@ package frc.robot.subsystems.leds;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.simulation.AddressableLEDSim;
 import edu.wpi.first.wpilibj.util.Color;
 
 /**
@@ -12,6 +13,7 @@ import edu.wpi.first.wpilibj.util.Color;
  */
 public class LEDIOSim implements LEDIO {
   private final AddressableLED led;
+  private final AddressableLEDSim sim;
   private final AddressableLEDBuffer buffer;
 
   public LEDIOSim() {
@@ -19,16 +21,30 @@ public class LEDIOSim implements LEDIO {
     buffer = new AddressableLEDBuffer(LEDSubsystem.NUM_LEDS);
     led.setLength(buffer.getLength());
     led.start();
+
+    sim = AddressableLEDSim.createForChannel(3);
+    setData(buffer);
+    sim.setRunning(true);
   }
 
   /** Write data from buffer to leds */
   @Override
   public void updateInputs(LEDIO.LEDIOInputs inputs) {
-    led.setData(buffer);
+    setData(buffer);
   }
 
   @Override
   public void setLED(int i, Color color) {
     buffer.setLED(i, color);
+  }
+
+  private void setData(AddressableLEDBuffer buffer) {
+    byte[] data = new byte[buffer.getLength()];
+
+    for (int i = 0; i < buffer.getLength(); i++) {
+      data[i] = Byte.parseByte(buffer.getLED8Bit(i).toHexString());
+    }
+
+    sim.setData(data);
   }
 }

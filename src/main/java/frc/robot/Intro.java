@@ -49,14 +49,13 @@ package frc.robot;
  * <br>
  * There have been some other smaller, but still notable changes. The first is the usage of {@link
  * edu.wpi.first.wpilibj2.command.button.CommandGenericHID} and its inheritors as the wrappers for
- * the HID (Human Interface Layer). This is the layer that handles all I/O with the game
- * controllers while the robot is enabled. Previously, we've been writing our own implementations
- * using the much lower-level {@link edu.wpi.first.wpilibj.GenericHID}, simply communicating with
- * the controllers via the internal button ports. While this is essentially what {@code
- * CommandGenericHID} does, our implementation introduced far more bloat into the code than was
- * really necessary, with a dozen files to carry out this interface. With this switch, the I/O layer
- * will of course be easier to navigate, but will also more smoothly integrate with AKit's universal
- * logging structure. <br>
+ * the HID (Human Interface Layer). This is the layer that handles all I/O with the game controllers
+ * while the robot is enabled. Previously, we've been writing our own implementations using the much
+ * lower-level {@link edu.wpi.first.wpilibj.GenericHID}, simply communicating with the controllers
+ * via the internal button ports. While this is essentially what {@code CommandGenericHID} does, our
+ * implementation introduced far more bloat into the code than was really necessary, with a dozen
+ * files to carry out this interface. With this switch, the I/O layer will of course be easier to
+ * navigate, but will also more smoothly integrate with AKit's universal logging structure. <br>
  * <br>
  * Moving up the abstraction layer, a lot of changes have been made to keep new code being written
  * to a minimum. With the introduction of the {@code RobotContainer} class, button bindings,
