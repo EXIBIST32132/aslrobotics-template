@@ -16,9 +16,9 @@ package frc.robot;
 import static frc.robot.Config.Controllers.getDriverController;
 import static frc.robot.Config.Controllers.getOperatorController;
 import static frc.robot.Config.Subsystems;
+import static frc.robot.Constants.MODE;
 import static frc.robot.Constants.RobotMode;
-import static frc.robot.Constants.currentMode;
-import static frc.robot.subsystems.swerve.MAXSwerve.MAXSwerve.getSparkModules;
+import static frc.robot.subsystems.swerve.SwerveSubsystem.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -35,9 +35,9 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.climber.ClimberSubsystem;
-import frc.robot.subsystems.flywheel.FlywheelSubsystem;
 import frc.robot.subsystems.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.flywheel.FlywheelIOSpark;
+import frc.robot.subsystems.flywheel.FlywheelSubsystem;
 import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.intake.IntakeSubsystem;
@@ -46,10 +46,8 @@ import frc.robot.subsystems.leds.LEDIOSim;
 import frc.robot.subsystems.leds.LEDSubsystem;
 import frc.robot.subsystems.prototypes.Prototypes;
 import frc.robot.subsystems.prototypes.Prototypes.PrototypeMotor;
-import frc.robot.subsystems.swerve.GenericSwerve;
 import frc.robot.subsystems.swerve.GyroIO;
-import frc.robot.subsystems.swerve.GyroIOPigeon2;
-import frc.robot.subsystems.swerve.MAXSwerve.MAXSwerve;
+import frc.robot.subsystems.swerve.SwerveSubsystem;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
@@ -62,45 +60,37 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 public class RobotContainer {
 
   // Subsystems
-  private final GenericSwerve drive =
+  private final SwerveSubsystem drive =
       Subsystems.DRIVETRAIN_ENABLED
-          ? (currentMode == RobotMode.REAL
-              ? new MAXSwerve(new GyroIOPigeon2(), getSparkModules())
-              : new MAXSwerve(
-                  new GyroIO() {
-                    @Override
-                    public void updateInputs(GyroIO.GyroIOInputs inputs) {}
-
-                    @Override
-                    public void setYaw(double yaw) {}
-                  },
-                  getSparkModules()))
+          ? (MODE == RobotMode.REAL
+              ? new SwerveSubsystem(getRealGyro(), getRealModules())
+              : new SwerveSubsystem(new GyroIO() {}, getSimModules()))
           : null;
 
   private final FlywheelSubsystem flywheel =
       Subsystems.SHOOTER_ENABLED
-          ? (currentMode == RobotMode.REAL
+          ? (MODE == RobotMode.REAL
               ? new FlywheelSubsystem(new FlywheelIOSpark())
               : new FlywheelSubsystem(new FlywheelIOSim()))
           : null;
 
   private final IntakeSubsystem intake =
       Subsystems.INTAKE_ENABLED
-          ? (currentMode == RobotMode.REAL
+          ? (MODE == RobotMode.REAL
               ? new IntakeSubsystem(new IntakeIOReal())
               : new IntakeSubsystem(new IntakeIOSim()))
           : null;
 
   private final ClimberSubsystem climber =
       Subsystems.CLIMBER_ENABLED
-          ? (currentMode == RobotMode.REAL
+          ? (MODE == RobotMode.REAL
               ? new ClimberSubsystem(new ClimberIOReal())
               : new ClimberSubsystem(new ClimberIOSim()))
           : null;
 
   private final LEDSubsystem leds =
       Subsystems.LEDS_ENABLED
-          ? (currentMode == RobotMode.REAL
+          ? (MODE == RobotMode.REAL
               ? new LEDSubsystem(new LEDIOPWM())
               : new LEDSubsystem(new LEDIOSim()))
           : null;

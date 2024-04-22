@@ -5,10 +5,8 @@
 package frc.robot.subsystems.leds;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.BooleanSupplier;
@@ -17,6 +15,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class LEDSubsystem extends SubsystemBase {
+
   public static final int NUM_LEDS = 36;
 
   private final LEDIO io;
@@ -101,7 +100,7 @@ public class LEDSubsystem extends SubsystemBase {
                     () -> {
                       if (DriverStation.getAlliance().isEmpty()) {
                         return new Color("#b59aff");
-                      } else if (DriverStation.getAlliance().get() == Alliance.Red) {
+                      } else if (DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
                         return new Color("#ff0000");
                       } else { // Blue
                         return new Color("#0000ff");
@@ -113,7 +112,7 @@ public class LEDSubsystem extends SubsystemBase {
                 .until(enabled),
             enabled)
         .ignoringDisable(true)
-        .withInterruptBehavior(InterruptionBehavior.kCancelSelf)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
         .repeatedly();
   }
 }

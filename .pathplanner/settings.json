@@ -1,0 +1,18 @@
+{
+  "robotWidth": 0.838,
+  "robotLength": 0.838,
+  "holonomicMode": true,
+  "pathFolders": [],
+  "autoFolders": [
+    "(LEGACY DNU) ASWStart",
+    "(LEGACY DNU) SSWtart",
+    "AMPStart",
+    "SUBStart",
+    "SRCStart"
+  ],
+  "defaultMaxVel": 3.985,
+  "defaultMaxAccel": 5.006,
+  "defaultMaxAngVel": 470.799,
+  "defaultMaxAngAccel": 1144.941,
+  "maxModuleSpeed": 4.5
+}

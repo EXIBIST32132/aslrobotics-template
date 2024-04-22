@@ -30,6 +30,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
  * project.
  */
 public class Robot extends LoggedRobot {
+
   private Command autonomousCommand;
   private RobotContainer robotContainer;
 
@@ -58,21 +59,19 @@ public class Robot extends LoggedRobot {
     }
 
     // Set up data receivers & replay source
-    switch (Constants.currentMode) {
+    switch (Constants.MODE) {
       case REAL:
         // Running on a real robot, log to a USB stick ("/U/logs")
         Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
         // Enables power distribution logging
-        // How is anything recorded if this isn't bound to an instance var? :shrug:
+        // how is anything recorded if this isn't bound to an instance var? :shrug:
         new PowerDistribution(1, PowerDistribution.ModuleType.kRev);
         break;
-
       case SIM:
         // Running a physics simulator, log to NT
         Logger.addDataReceiver(new NT4Publisher());
         break;
-
       case REPLAY:
         // Replaying a log, set up replay source
         setUseTiming(false); // Run as fast as possible

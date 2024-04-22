@@ -23,7 +23,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.subsystems.swerve.GenericSwerve;
+import frc.robot.subsystems.swerve.SwerveSubsystem;
 import java.util.function.DoubleSupplier;
 
 public class DriveCommands {
@@ -35,7 +35,7 @@ public class DriveCommands {
    * Field relative drive command using two joysticks (controlling linear and angular velocities).
    */
   public static Command joystickDrive(
-      GenericSwerve driveSubsystem,
+      SwerveSubsystem driveSubsystem,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {

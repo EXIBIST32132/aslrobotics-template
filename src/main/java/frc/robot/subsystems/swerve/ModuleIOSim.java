@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
  * approximation for the behavior of the module.
  */
 public class ModuleIOSim implements ModuleIO {
+
   private static final double LOOP_PERIOD_SECS = 0.02;
 
   private DCMotorSim driveSim = new DCMotorSim(DCMotor.getNEO(1), 6.75, 0.025);
@@ -34,6 +35,12 @@ public class ModuleIOSim implements ModuleIO {
   private final Rotation2d turnAbsoluteInitPosition = new Rotation2d(Math.random() * 2.0 * Math.PI);
   private double driveAppliedVolts = 0.0;
   private double turnAppliedVolts = 0.0;
+
+  private final String name;
+
+  public ModuleIOSim(String name) {
+    this.name = name;
+  }
 
   @Override
   public void updateInputs(ModuleIOInputs inputs) {
@@ -67,6 +74,6 @@ public class ModuleIOSim implements ModuleIO {
 
   @Override
   public String getModuleName() {
-    return "";
+    return name;
   }
 }

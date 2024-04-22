@@ -25,6 +25,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class FlywheelSubsystem extends SubsystemBase {
+
   public enum Velocity {
     OFF(0),
     SLOW(1),
@@ -49,7 +50,7 @@ public class FlywheelSubsystem extends SubsystemBase {
 
     // Switch constants based on mode (the physics simulator is treated as a
     // separate robot with different tuning)
-    switch (Constants.currentMode) {
+    switch (Constants.MODE) {
       case REAL:
       case REPLAY:
         ffModel = new SimpleMotorFeedforward(0.1, 0.05);
@@ -71,8 +72,8 @@ public class FlywheelSubsystem extends SubsystemBase {
                 null,
                 null,
                 null,
-                (state) -> Logger.recordOutput("Flywheel/SysIdState", state.toString())),
-            new SysIdRoutine.Mechanism((voltage) -> runVolts(voltage.in(Volts)), null, this));
+                state -> Logger.recordOutput("Flywheel/SysIdState", state.toString())),
+            new SysIdRoutine.Mechanism(voltage -> runVolts(voltage.in(Volts)), null, this));
   }
 
   @Override

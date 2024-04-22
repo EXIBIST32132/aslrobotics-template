@@ -62,7 +62,9 @@ public class FlywheelIOTalonFX implements FlywheelIO {
         Units.rotationsToRadians(leaderVelocity.getValueAsDouble()) / GEAR_RATIO;
     inputs.shooterAppliedVolts = leaderAppliedVolts.getValueAsDouble();
     inputs.shooterCurrentAmps =
-        new double[] {leaderCurrent.getValueAsDouble(), followerCurrent.getValueAsDouble()};
+        new double[] {
+          leaderCurrent.getValueAsDouble(), followerCurrent.getValueAsDouble(),
+        };
   }
 
   @Override

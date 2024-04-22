@@ -5,7 +5,9 @@ import frc.robot.OI.CommandBoardControllerSubsystem;
 import frc.robot.OI.CommandXboxControllerSubsystem;
 
 public final class Config {
+
   public static final class Subsystems {
+
     public static final boolean DRIVETRAIN_ENABLED = false;
     public static final boolean VISION_ENABLED = false;
     public static final boolean INTAKE_ENABLED = false;
@@ -15,6 +17,7 @@ public final class Config {
   }
 
   public static final class Controllers {
+
     public static final boolean DRIVER_ENALBED = false;
     public static final int DRIVER_PORT = 0;
 

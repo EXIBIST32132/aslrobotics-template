@@ -1,6 +1,7 @@
 package frc.robot.subsystems.intake;
 
 public class IntakeIOReal implements IntakeIO {
+
   @Override
   public void updateInputs(IntakeIOInputs inputs) {}
 

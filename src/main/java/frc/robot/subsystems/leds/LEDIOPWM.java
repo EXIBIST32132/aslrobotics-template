@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.util.Color;
  * see how things go in simulation. As of now, this class is copied into the real version.
  */
 public class LEDIOPWM implements LEDIO {
+
   private final AddressableLED led;
   private final AddressableLEDBuffer buffer;
 

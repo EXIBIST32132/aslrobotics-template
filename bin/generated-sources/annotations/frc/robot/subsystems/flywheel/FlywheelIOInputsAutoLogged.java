@@ -7,26 +7,26 @@ public class FlywheelIOInputsAutoLogged extends FlywheelIO.FlywheelIOInputs
     implements LoggableInputs, Cloneable {
   @Override
   public void toLog(LogTable table) {
-    table.put("PositionRad", positionRad);
-    table.put("VelocityRadPerSec", velocityRadPerSec);
-    table.put("AppliedVolts", appliedVolts);
-    table.put("CurrentAmps", currentAmps);
+    table.put("ShooterPositionRad", shooterPositionRad);
+    table.put("ShooterVelocityRadPerSec", shooterVelocityRadPerSec);
+    table.put("ShooterAppliedVolts", shooterAppliedVolts);
+    table.put("ShooterCurrentAmps", shooterCurrentAmps);
   }
 
   @Override
   public void fromLog(LogTable table) {
-    positionRad = table.get("PositionRad", positionRad);
-    velocityRadPerSec = table.get("VelocityRadPerSec", velocityRadPerSec);
-    appliedVolts = table.get("AppliedVolts", appliedVolts);
-    currentAmps = table.get("CurrentAmps", currentAmps);
+    shooterPositionRad = table.get("ShooterPositionRad", shooterPositionRad);
+    shooterVelocityRadPerSec = table.get("ShooterVelocityRadPerSec", shooterVelocityRadPerSec);
+    shooterAppliedVolts = table.get("ShooterAppliedVolts", shooterAppliedVolts);
+    shooterCurrentAmps = table.get("ShooterCurrentAmps", shooterCurrentAmps);
   }
 
   public FlywheelIOInputsAutoLogged clone() {
     FlywheelIOInputsAutoLogged copy = new FlywheelIOInputsAutoLogged();
-    copy.positionRad = this.positionRad;
-    copy.velocityRadPerSec = this.velocityRadPerSec;
-    copy.appliedVolts = this.appliedVolts;
-    copy.currentAmps = this.currentAmps.clone();
+    copy.shooterPositionRad = this.shooterPositionRad;
+    copy.shooterVelocityRadPerSec = this.shooterVelocityRadPerSec;
+    copy.shooterAppliedVolts = this.shooterAppliedVolts;
+    copy.shooterCurrentAmps = this.shooterCurrentAmps.clone();
     return copy;
   }
 }

@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.TrapezoidProfileCommand;
 
 // package-private because Prototypes.java should be the only usage
 class SendableMotor implements Sendable, Subsystem {
+
   public enum Motor {
     NEO(new Constants(0, 41, -5676, 5676)),
     NEO550(new Constants(0, 41, -11000, 11000)),

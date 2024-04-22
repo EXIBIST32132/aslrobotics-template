@@ -1,4 +1,3 @@
 package frc.robot.subsystems.feeder;
 
-public class FeederIOReal {
-}
+public class FeederIOReal {}

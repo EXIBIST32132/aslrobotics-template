@@ -9,7 +9,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.Map;
 
 public class Prototypes extends SubsystemBase {
-  // I LOVE these things! Records are the best things to come to Java.
+
+  // w records
   public record PrototypeMotor(int id, String name) {}
 
   private static final String PARENT_TAB_NAME = "Prototypes";

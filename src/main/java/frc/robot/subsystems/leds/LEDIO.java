@@ -8,7 +8,6 @@ import org.littletonrobotics.junction.AutoLog;
  * both modes, like setting the whole strip to one color or setting individual LEDs, go in here.
  */
 public interface LEDIO {
-
   /** LEDs don't read any sensors, so this inner class should be left empty. */
   @AutoLog
   class LEDIOInputs {

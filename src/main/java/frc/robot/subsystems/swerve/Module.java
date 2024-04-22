@@ -24,6 +24,7 @@ import frc.robot.Constants;
 import org.littletonrobotics.junction.Logger;
 
 public class Module {
+
   /**
    * Represents each module's constants on a NEO-based swerve.
    *
@@ -32,20 +33,12 @@ public class Module {
    * @param rotatorID
    * @param encoderOffset in radians
    */
-  public record SparkModuleConstants(
-      String name, int driveID, int rotatorID, Rotation2d encoderOffset) {}
-
-  /**
-   * Represents each module's constants on a Talon-based swerve.
-   *
-   * @param name of the module, for logging purposes
-   * @param driveID
-   * @param rotatorID
-   * @param cancoderID
-   * @param encoderOffset in radians
-   */
-  public record TalonFXModuleConstants(
-      String name, int driveID, int rotatorID, int cancoderID, Rotation2d encoderOffset) {}
+  public record ModuleConstants(
+      String name, int driveID, int rotatorID, int cancoderID, Rotation2d encoderOffset) {
+    public ModuleConstants(String name, int driveID, int rotatorID, Rotation2d encoderOffset) {
+      this(name, driveID, rotatorID, -1, encoderOffset);
+    }
+  }
 
   private final ModuleIO io;
   private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
@@ -62,7 +55,7 @@ public class Module {
 
     // Switch constants based on mode (the physics simulator is treated as a
     // separate robot with different tuning)
-    switch (Constants.currentMode) {
+    switch (Constants.MODE) {
       case REAL:
       case REPLAY:
         driveFeedforward = new SimpleMotorFeedforward(0.1, 0.13);
