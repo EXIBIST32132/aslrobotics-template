@@ -16,7 +16,10 @@ package frc.robot;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import frc.robot.util.AprilTagVisionHelpers.TagCountDeviation;
 import frc.robot.util.AprilTagVisionHelpers.UnitDeviationParams;
@@ -32,7 +35,7 @@ import java.util.List;
  */
 public final class Constants {
 
-  public static final RobotMode MODE = RobotMode.REAL;
+  public static final RobotMode MODE = RobotMode.SIM;
 
   public static enum RobotMode {
     /** Running on a real robot. */
@@ -47,26 +50,7 @@ public final class Constants {
 
   public static final class DriveMap {
 
-    public static final boolean USING_TALON_DRIVE = false;
-    public static final boolean VORTEX_DRIVE = false && !USING_TALON_DRIVE;
-
-    /** feet per second -> meters per second */
-    public static final double MAX_LINEAR_SPEED = Units.feetToMeters(14.5);
-
-    public static final double TRACK_WIDTH = Units.inchesToMeters(25.0);
-    public static final double WHEEL_BASE = Units.inchesToMeters(25.0);
-    public static final double DRIVE_BASE_RADIUS = Math.hypot(TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0);
-    /** radians per second */
-    public static final double MAX_ANGULAR_SPEED = MAX_LINEAR_SPEED / DRIVE_BASE_RADIUS;
-
-    // Gear ratios for SDS MK4i L2, adjust as necessary
-    public static final double DRIVE_GEAR_RATIO = (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0);
-    public static final double TURN_GEAR_RATIO = 150.0 / 7.0;
-    public static final double WHEEL_RADIUS = Units.inchesToMeters(1.5);
-    public static final ReplanningConfig REPLANNING_CONFIG =
-        new ReplanningConfig(true, true, 0.6, 0.2);
-
-    public static final class Gyro {
+    public static final class GyroMap {
 
       public enum GyroType {
         PIGEON,
@@ -77,6 +61,47 @@ public final class Constants {
 
       public static final int PIGEON_ID = 30;
     }
+
+    // TODO refactor into separate constants files in swerve
+    public static final boolean USING_TALON_DRIVE = false; // change to using kraken FOC?
+    public static final boolean USING_VORTEX_DRIVE = false && !USING_TALON_DRIVE;
+
+    public static final double TRACK_WIDTH = Units.inchesToMeters(23.5);
+    public static final double WHEEL_BASE = Units.inchesToMeters(23.5);
+
+    public static final double DRIVE_BASE_RADIUS = Math.hypot(TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0);
+
+    /** feet per second -> meters per second */
+    public static final double MAX_LINEAR_SPEED = Units.feetToMeters(14.5);
+    /** radians per second */
+    public static final double MAX_ANGULAR_SPEED = MAX_LINEAR_SPEED / DRIVE_BASE_RADIUS;
+
+    public static final double WHEEL_RADIUS = Units.inchesToMeters(1.5);
+
+    // this and below for choreo and pathfinding
+    public static final double DRIVE_BASE_MASS = Units.lbsToKilograms(100.0);
+
+    public static final int DRIVE_MOTOR_CURRENT_LIMIT = 40;
+    public static final int ROTATOR_MOTOR_CURRENT_LIMIT = 20;
+
+    public static final double DRIVE_MOTOR_MAX_TORQUE =
+        USING_TALON_DRIVE
+            ? DCMotor.getKrakenX60Foc(1).getTorque(DRIVE_MOTOR_CURRENT_LIMIT)
+            : (USING_VORTEX_DRIVE
+                ? DCMotor.getNeoVortex(1).getTorque(DRIVE_MOTOR_CURRENT_LIMIT)
+                : DCMotor.getNEO(1).getTorque(DRIVE_MOTOR_CURRENT_LIMIT));
+
+    public static final double DRIVE_GEAR_RATIO =
+        USING_TALON_DRIVE ? (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0) : 4.71;
+    public static final double TURN_GEAR_RATIO = USING_TALON_DRIVE ? 150.0 / 7.0 : 9424.0 / 203.0;
+
+    public static final double MAX_LINEAR_ACCELERATION =
+        4 * (DRIVE_GEAR_RATIO * DRIVE_MOTOR_MAX_TORQUE) / WHEEL_RADIUS / DRIVE_BASE_MASS;
+    public static final double MAX_ANGULAR_ACCELERATION =
+        4 * (DRIVE_GEAR_RATIO * DRIVE_MOTOR_MAX_TORQUE) / WHEEL_RADIUS * DRIVE_BASE_RADIUS / 15.0;
+
+    public static final ReplanningConfig REPLANNING_CONFIG =
+        new ReplanningConfig(true, true, 0.6, 0.2);
   }
 
   public static final class ShooterMap {
@@ -99,14 +124,14 @@ public final class Constants {
   public static final class VisionMap {
 
     public static enum CameraType {
-      OV2311(0.0),
-      OV9281(0.0),
-      LIMELIGHT(0.0),
-      LIMELIGHT_3G(0.0),
-      TELEPHOTO_2311(0.0),
-      TELEPHOTO_9281(0.0),
-      TELEPHOTO_LIMELIGHT(0.0),
-      TELEPHOTO_LIMELIGHT_3G(0.0),
+      OV2311(5.0),
+      OV9281(5.0),
+      LIMELIGHT(5.0),
+      LIMELIGHT_3G(5.0),
+      TELEPHOTO_2311(5.0),
+      TELEPHOTO_9281(5.0),
+      TELEPHOTO_LIMELIGHT(5.0),
+      TELEPHOTO_LIMELIGHT_3G(5.0),
       UNKNOWN(Double.MAX_VALUE);
 
       final double noisyDistance;
@@ -144,8 +169,6 @@ public final class Constants {
     // TODO tune all of these!!
     public static final class AprilTagVisionMap {
 
-      public static final double MAX_DISTANCE_CUTOFF = 5.0;
-
       public static final boolean LEFT_CAM_ENABLED = true;
       public static final VisionConstants LEFT_CAM_CONSTANTS =
           new VisionConstants("", new Transform3d(), CameraType.TELEPHOTO_9281);
@@ -161,6 +184,10 @@ public final class Constants {
               // 3+ tags
               new TagCountDeviation(
                   new UnitDeviationParams(.25, .07, .25), new UnitDeviationParams(.15, 1, 1.5)));
+      public static final double MOVING_DEVIATION_EULER_MULTIPLIER = 0.1;
+      public static final double MOVING_DEVIATION_VELOCITY_MULTIPLIER = 0.1;
+      public static final double TURNING_DEVIATION_EULER_MULTIPLIER = 0.1;
+      public static final double TURNING_DEVIATION_VELOCITY_MULTIPLIER = 0.1;
     }
   }
 }

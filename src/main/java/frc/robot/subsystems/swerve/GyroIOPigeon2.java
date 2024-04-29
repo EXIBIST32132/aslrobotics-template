@@ -25,7 +25,7 @@ import frc.robot.Constants.DriveMap;
 /** IO implementation for Pigeon2 */
 public class GyroIOPigeon2 implements GyroIO {
 
-  private final Pigeon2 pigeon = new Pigeon2(DriveMap.Gyro.PIGEON_ID);
+  private final Pigeon2 pigeon = new Pigeon2(DriveMap.GyroMap.PIGEON_ID);
   private final StatusSignal<Double> yaw = pigeon.getYaw();
   private final StatusSignal<Double> yawVelocity = pigeon.getAngularVelocityZWorld();
 

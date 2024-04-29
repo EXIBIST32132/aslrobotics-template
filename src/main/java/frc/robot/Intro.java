@@ -67,12 +67,12 @@ package frc.robot;
  * Because of the removal of the CommandMaps, all subsystem commands should now be scheduled <br>
  * <br>
  * <b>Credits</b><br>
- * Massive, massive thank you to FRC teams 5712 Hemlock's Gray Matter and 8033 Highlander Robotics
- * for providing their 2023-24 season repositories as inspiration for this project! Without your
- * gracious professionalism, we would not have been able to get this massive project off the ground.
- * Of course, we are also extremely grateful to team 6328 and everyone that has helped maintain the
- * incredible framework that is AdvantageKit, as well as the extensive documentation that it
- * thankfully has.
+ * Massive, massive thank you to FRC teams 5712 Hemlock's Gray Matter, 8033 Highlander Robotics, and
+ * 6443 AEMBOT for providing their 2023-24 season repositories as inspiration for this project!
+ * Without your gracious professionalism, we would not have been able to get this massive project
+ * off the ground. Of course, we are also extremely grateful to team 6328 and everyone that has
+ * helped maintain the incredible framework that is AdvantageKit, as well as the extensive
+ * documentation that it thankfully has.
  */
 public final class Intro {
 

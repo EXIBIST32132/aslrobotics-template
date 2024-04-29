@@ -1,0 +1,21 @@
+[
+  {
+    "type": "java",
+    "name": "jar (in project aslrobotics-template)",
+    "extensions": [
+      {
+        "name": "Sim GUI",
+        "libName": "/Users/harshivpuri/Desktop/aslrobotics-template/build/jni/release/libhalsim_gui.dylib",
+        "defaultEnabled": false
+      },
+      {
+        "name": "Use Real DriverStation",
+        "libName": "/Users/harshivpuri/Desktop/aslrobotics-template/build/jni/release/libhalsim_ds_socket.dylib",
+        "defaultEnabled": false
+      }
+    ],
+    "environment": {},
+    "libraryDir": "/Users/harshivpuri/Desktop/aslrobotics-template/build/jni/release",
+    "mainClassName": "frc.robot.Main"
+  }
+]

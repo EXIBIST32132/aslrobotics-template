@@ -13,6 +13,9 @@
 
 package frc.robot;
 
+import static com.pathplanner.lib.auto.NamedCommands.registerCommand;
+import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
+import static edu.wpi.first.wpilibj2.command.Commands.startEnd;
 import static frc.robot.Config.Controllers.getDriverController;
 import static frc.robot.Config.Controllers.getOperatorController;
 import static frc.robot.Config.Subsystems;
@@ -21,16 +24,14 @@ import static frc.robot.Constants.RobotMode;
 import static frc.robot.subsystems.swerve.SwerveSubsystem.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Config.Controllers;
+import frc.robot.OI.CommandXboxControllerSubsystem;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
@@ -95,15 +96,18 @@ public class RobotContainer {
               : new LEDSubsystem(new LEDIOSim()))
           : null;
 
-  private final Prototypes prototypes = new Prototypes(new PrototypeMotor(1, "Motor 1"));
+  private final Prototypes prototypes =
+      Subsystems.PROTOTYPES_ENABLED ? new Prototypes(new PrototypeMotor(1, "Motor 1")) : null;
 
   // Driver controller
-  private final CommandXboxController driver =
-      Controllers.DRIVER_ENALBED ? (CommandXboxController) getDriverController() : null;
+  private final CommandXboxControllerSubsystem driver =
+      Controllers.DRIVER_ENALBED ? (CommandXboxControllerSubsystem) getDriverController() : null;
 
   // Operator controller
-  private final CommandXboxController operator =
-      Controllers.OPERATOR_ENABLED ? (CommandXboxController) getOperatorController() : null;
+  private final CommandXboxControllerSubsystem operator =
+      Controllers.OPERATOR_ENABLED
+          ? (CommandXboxControllerSubsystem) getOperatorController()
+          : null;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -138,10 +142,9 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Set up auto routines
-    NamedCommands.registerCommand(
+    registerCommand(
         "Run Flywheel",
-        Commands.startEnd(
-                () -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop, flywheel)
+        startEnd(() -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop, flywheel)
             .withTimeout(5.0));
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -161,11 +164,11 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
-    driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    driver.x().onTrue(runOnce(drive::stopWithX, drive));
     driver
         .b()
         .onTrue(
-            Commands.runOnce(
+            runOnce(
                     () ->
                         drive.setPose(
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
@@ -174,7 +177,7 @@ public class RobotContainer {
     operator
         .a()
         .whileTrue(
-            Commands.startEnd(
+            startEnd(
                 () -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop, flywheel));
   }
 

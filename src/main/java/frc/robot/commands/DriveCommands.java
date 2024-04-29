@@ -13,6 +13,9 @@
 
 package frc.robot.commands;
 
+import static edu.wpi.first.wpilibj2.command.Commands.either;
+import static java.lang.Math.abs;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,8 +28,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 public class DriveCommands {
+
   private static final double DEADBAND = 0.1;
 
   private DriveCommands() {}
@@ -73,5 +78,34 @@ public class DriveCommands {
                       : driveSubsystem.getRotation()));
         },
         driveSubsystem);
+  }
+
+  public Command manualOverrideAutoDrive(
+      SwerveSubsystem driveSubsystem,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier,
+      Supplier<Pose2d> targetPose) {
+    return either(
+            Commands.runOnce(driveSubsystem.pathFindCommand(targetPose)::schedule),
+            Commands.runOnce(
+                joystickDrive(driveSubsystem, xSupplier, ySupplier, omegaSupplier)::schedule),
+            () ->
+                abs(xSupplier.getAsDouble()) < DEADBAND
+                    || abs(ySupplier.getAsDouble()) < DEADBAND
+                    || abs(omegaSupplier.getAsDouble()) < DEADBAND)
+        .repeatedly()
+        .until(
+            () ->
+                driveSubsystem
+                            .getPose()
+                            .getTranslation()
+                            .getDistance(targetPose.get().getTranslation())
+                        < 0.1
+                    && driveSubsystem
+                            .getRotation()
+                            .minus(targetPose.get().getRotation())
+                            .getDegrees()
+                        < 0.5);
   }
 }

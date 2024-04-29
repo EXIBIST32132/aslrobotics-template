@@ -13,7 +13,7 @@
 
 package frc.robot.subsystems.flywheel;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
@@ -28,9 +28,9 @@ public class FlywheelSubsystem extends SubsystemBase {
 
   public enum Velocity {
     OFF(0),
-    SLOW(1),
-    MEDIUM(3),
-    FAST(6);
+    SLOW(200),
+    MEDIUM(500),
+    FAST(900);
 
     final double velocity;
 

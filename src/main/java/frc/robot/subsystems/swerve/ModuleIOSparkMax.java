@@ -13,11 +13,12 @@
 
 package frc.robot.subsystems.swerve;
 
-import static frc.robot.Constants.DriveMap.DRIVE_GEAR_RATIO;
-import static frc.robot.Constants.DriveMap.TURN_GEAR_RATIO;
+import static frc.robot.Constants.DriveMap.*;
 
-import com.revrobotics.*;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkAbsoluteEncoder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
@@ -67,8 +68,8 @@ public class ModuleIOSparkMax implements ModuleIO {
     absoluteEncoderOffset = sparkModuleConstants.encoderOffset();
 
     turnSparkMax.setInverted(ROTATOR_INVERTED);
-    driveSparkMax.setSmartCurrentLimit(40);
-    turnSparkMax.setSmartCurrentLimit(20);
+    driveSparkMax.setSmartCurrentLimit(DRIVE_MOTOR_CURRENT_LIMIT);
+    turnSparkMax.setSmartCurrentLimit(ROTATOR_MOTOR_CURRENT_LIMIT);
     driveSparkMax.enableVoltageCompensation(12.0);
     turnSparkMax.enableVoltageCompensation(12.0);
 

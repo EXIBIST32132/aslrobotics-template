@@ -30,8 +30,7 @@ public class AprilTagVisionIOPhotonSim implements AprilTagVisionIO {
   public final Supplier<Pose2d> drivePoseSupplier;
   private double previousTimestamp = 0.0;
 
-  private static final String NAME =
-      "TagVisionSim"; // why is this the same thing in both places lol
+  private static final String NAME = "TagVisionSim";
 
   private final VisionConstants[] constantsList;
 
@@ -60,9 +59,9 @@ public class AprilTagVisionIOPhotonSim implements AprilTagVisionIO {
       poseEstimators[i].setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
       var cameraProperties = new SimCameraProperties();
-      cameraProperties.setCalibration(1080, 960, Rotation2d.fromDegrees(70));
+      cameraProperties.setCalibration(1080, 960, Rotation2d.fromDegrees(120));
       cameraProperties.setCalibError(0.25, 0.15);
-      cameraProperties.setFPS(50.0);
+      cameraProperties.setFPS(25.0);
       cameraProperties.setAvgLatencyMs(30.0);
       cameraProperties.setLatencyStdDevMs(5.0);
 
@@ -132,11 +131,11 @@ public class AprilTagVisionIOPhotonSim implements AprilTagVisionIO {
       boolean isNewResult = Math.abs(latestTimestamp - previousTimestamp) > 1e-5;
 
       if (estimatedRobotPose.isPresent()) {
-        getSimDebugField()
+        getDebugField()
             .getObject("VisionEstimation")
             .setPose(estimatedRobotPose.get().estimatedPose.toPose2d());
       } else {
-        if (isNewResult) getSimDebugField().getObject("VisionEstimation").setPoses();
+        if (isNewResult) getDebugField().getObject("VisionEstimation").setPoses();
       }
 
       if (isNewResult) previousTimestamp = latestTimestamp;
@@ -148,13 +147,8 @@ public class AprilTagVisionIOPhotonSim implements AprilTagVisionIO {
   }
 
   /** A Field2d for visualizing our robot and objects on the field. */
-  public Field2d getSimDebugField() {
+  public Field2d getDebugField() {
     return !Robot.isSimulation() ? null : sim.getDebugField();
-  }
-
-  @Override
-  public String getName() {
-    return NAME;
   }
 
   @Override

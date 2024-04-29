@@ -1,0 +1,39 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x0000000193c93de0, pid=57888, tid=259
+#
+# JRE version: OpenJDK Runtime Environment Temurin-17.0.7+7 (17.0.7+7) (build 17.0.7+7)
+# Java VM: OpenJDK 64-Bit Server VM Temurin-17.0.7+7 (17.0.7+7, mixed mode, tiered, compressed oops, compressed class ptrs, g1 gc, bsd-aarch64)
+# Problematic frame:
+# C  [libsystem_malloc.dylib+0x3de0]  tiny_malloc_from_free_list+0xf0
+#
+# No core dump will be written. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please visit:
+#   https://github.com/adoptium/adoptium-support/issues
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:52791 -Djava.library.path=/Users/harshivpuri/Desktop/aslrobotics-template/build/jni/release -XX:+ShowCodeDetailsInExceptionMessages frc.robot.Main
+
+Host: "MacBookAir10,1" arm64, 8 cores, 8G, Darwin 22.4.0, macOS 13.3.1 (22E261)
+
+[error occurred during error reporting (printing date and time), id 0x5, SIGTRAP (0x5) at pc=0x0000000193ea11b4]
+
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x000000015000ca00):  JavaThread "main" [_thread_in_native, id=259, stack(0x000000016cce8000,0x000000016d4e4000)]
+
+Stack: [0x000000016cce8000,0x000000016d4e4000],  sp=0x000000016d4d7580,  free space=8125k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libsystem_malloc.dylib+0x3de0]  tiny_malloc_from_free_list+0xf0
+C  [libsystem_malloc.dylib+0x3670]  tiny_malloc_should_clear+0xd8
+C  [libsystem_malloc.dylib+0x224c]  szone_malloc_should_clear+0x5c
+C  [libsystem_blocks.dylib+0x1b44]  _Block_copy+0x44
+C  [libdispatch.dylib+0x2838]  _dispatch_Block_copy+0x20
+C  [libdispatch.dylib+0x1e2f8]  dispatch_mach_create+0x20

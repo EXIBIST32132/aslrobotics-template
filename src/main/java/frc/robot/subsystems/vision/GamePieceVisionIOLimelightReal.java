@@ -14,7 +14,7 @@ public class GamePieceVisionIOLimelightReal implements GamePieceVisionIO {
 
   @Override
   public void updateInputs(GamePieceVisionIOInputs inputs) {
-    if ((boolean) (inputs.hasTarget = getTV(""))) {
+    if ((boolean) (inputs.hasTarget = getTV(constants.cameraName()))) {
       inputs.targetYaw = getTX(constants.cameraName());
       inputs.targetPitch = getTY(constants.cameraName());
     }

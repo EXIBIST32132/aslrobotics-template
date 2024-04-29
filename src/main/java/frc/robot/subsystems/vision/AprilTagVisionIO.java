@@ -4,6 +4,7 @@ import static frc.robot.util.AprilTagVisionHelpers.toArray;
 import static frc.robot.util.LimelightHelpers.toPose3D;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.util.AprilTagVisionHelpers.PoseEstimate;
 import java.util.ArrayList;
 import org.littletonrobotics.junction.LogTable;
@@ -42,11 +43,7 @@ public interface AprilTagVisionIO {
 
   default void updateInputs(AprilTagIOInputsLogged inputs) {}
 
-  default String getName() {
-    return "";
-  }
+  Field2d getDebugField();
 
-  default double[] getNoisyDistances() {
-    return new double[] {};
-  }
+  double[] getNoisyDistances();
 }

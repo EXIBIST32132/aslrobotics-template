@@ -13,8 +13,7 @@
 
 package frc.robot.subsystems.swerve;
 
-import static frc.robot.Constants.DriveMap.DRIVE_GEAR_RATIO;
-import static frc.robot.Constants.DriveMap.TURN_GEAR_RATIO;
+import static frc.robot.Constants.DriveMap.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -60,12 +59,12 @@ public class ModuleIOTalonFX implements ModuleIO {
     absoluteEncoderOffset = moduleConstants.encoderOffset();
 
     var driveConfig = new TalonFXConfiguration();
-    driveConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+    driveConfig.CurrentLimits.StatorCurrentLimit = DRIVE_MOTOR_CURRENT_LIMIT;
     driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     driveTalon.getConfigurator().apply(driveConfig);
 
     var turnConfig = new TalonFXConfiguration();
-    turnConfig.CurrentLimits.StatorCurrentLimit = 30.0;
+    turnConfig.CurrentLimits.StatorCurrentLimit = ROTATOR_MOTOR_CURRENT_LIMIT;
     turnConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     turnTalon.getConfigurator().apply(turnConfig);
 

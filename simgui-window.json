@@ -1,0 +1,86 @@
+{
+  "Docking": {
+    "Data": [
+      "DockNode  ID=0x00000001 Pos=295,57 Size=703,442 Selected=0x48913727"
+    ]
+  },
+  "MainWindow": {
+    "GLOBAL": {
+      "fps": "120",
+      "height": "900",
+      "maximized": "0",
+      "style": "0",
+      "userScale": "2",
+      "width": "628",
+      "xpos": "0",
+      "ypos": "53"
+    }
+  },
+  "Table": {
+    "0xE56EC1C2,4": {
+      "Column 0  Weight": "1.0000",
+      "Column 1  Weight": "1.0000",
+      "Column 2  Weight": "1.0000",
+      "Column 3  Weight": "1.0000"
+    }
+  },
+  "Window": {
+    "###/SmartDashboard/VisionSystemSim-TagVisionSim/Sim Field": {
+      "Collapsed": "0",
+      "DockId": "0x00000001,0",
+      "Pos": "295,57",
+      "Size": "703,442"
+    },
+    "###FMS": {
+      "Collapsed": "0",
+      "Pos": "5,540",
+      "Size": "169,184"
+    },
+    "###Joysticks": {
+      "Collapsed": "0",
+      "Pos": "533,101",
+      "Size": "796,189"
+    },
+    "###Keyboard 0 Settings": {
+      "Collapsed": "0",
+      "Pos": "746,237",
+      "Size": "300,560"
+    },
+    "###NetworkTables": {
+      "Collapsed": "1",
+      "Pos": "250,23",
+      "Size": "750,397"
+    },
+    "###NetworkTables Info": {
+      "Collapsed": "0",
+      "DockId": "0x00000001,1",
+      "Pos": "295,57",
+      "Size": "703,442"
+    },
+    "###Other Devices": {
+      "Collapsed": "0",
+      "Pos": "1051,154",
+      "Size": "250,695"
+    },
+    "###System Joysticks": {
+      "Collapsed": "0",
+      "Pos": "10,295",
+      "Size": "192,218"
+    },
+    "###Timing": {
+      "Collapsed": "0",
+      "Pos": "5,150",
+      "Size": "141,127"
+    },
+    "Debug##Default": {
+      "Collapsed": "0",
+      "Pos": "60,60",
+      "Size": "400,400"
+    },
+    "Robot State": {
+      "Collapsed": "0",
+      "Pos": "5,20",
+      "Size": "92,116"
+    }
+  }
+}

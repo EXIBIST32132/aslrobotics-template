@@ -2,11 +2,12 @@ package frc.robot.subsystems.swerve;
 
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.Constants.DriveMap.*;
-import static frc.robot.Constants.DriveMap.Gyro.GYRO_TYPE;
+import static frc.robot.Constants.DriveMap.GyroMap.GYRO_TYPE;
 import static frc.robot.Constants.MODE;
-import static frc.robot.Constants.VisionMap.AprilTagVisionMap.LEFT_CAM_CONSTANTS;
+import static frc.robot.Constants.VisionMap.AprilTagVisionMap.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -20,6 +21,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -31,27 +33,22 @@ import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonReal;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonSim;
 import frc.robot.util.LocalADStarAK;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class SwerveSubsystem extends SubsystemBase {
 
-  /*
-   im an idiot and don't know how to vision, so please only input
-   one set of constants per real io, or
-   one sim io with multiple sets of constants
-  */
-  // TODO fix this problem ^^
-  protected final AprilTagVision vision =
+  private final AprilTagVision vision =
       Config.Subsystems.VISION_ENABLED
           ? (MODE == Constants.RobotMode.REAL
               ? new AprilTagVision(new AprilTagVisionIOPhotonReal(LEFT_CAM_CONSTANTS))
               : new AprilTagVision(
                   new AprilTagVisionIOPhotonSim(this::getPose, LEFT_CAM_CONSTANTS)))
           : null;
-  protected SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
-  protected Rotation2d rawGyroRotation = new Rotation2d();
-  protected SwerveModulePosition[] lastModulePositions =
+  private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
+  private Rotation2d rawGyroRotation = new Rotation2d();
+  private SwerveModulePosition[] lastModulePositions =
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
         new SwerveModulePosition(),
@@ -59,27 +56,27 @@ public class SwerveSubsystem extends SubsystemBase {
         new SwerveModulePosition(),
       };
 
-  protected SwerveDrivePoseEstimator poseEstimator =
+  private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(
           kinematics,
           rawGyroRotation,
           lastModulePositions,
           new Pose2d(),
-          VecBuilder.fill(0.003, 0.003, 0.0002),
+          VecBuilder.fill(0.3, 0.3, 0.02),
           VecBuilder.fill(0.01, 0.01, 0.01));
 
-  protected final GyroIO gyroIO;
-  protected final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-  protected final Module[] modules = new Module[4]; // FL, FR, BL, BR
+  private final GyroIO gyroIO;
+  private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+  private final Module[] modules = new Module[4]; // FL, FR, BL, BR
 
   // add the CANCoder id between the rotator id and offset params
-  public static final ModuleConstants frontLeft =
+  private static final ModuleConstants frontLeft =
       new ModuleConstants("Front Left", 0, 1, Rotation2d.fromRadians(-Math.PI / 2));
-  public static final ModuleConstants frontRight =
+  private static final ModuleConstants frontRight =
       new ModuleConstants("Front Right", 2, 3, Rotation2d.fromRadians(0));
-  public static final ModuleConstants backLeft =
+  private static final ModuleConstants backLeft =
       new ModuleConstants("Back Left", 4, 5, Rotation2d.fromRadians(Math.PI));
-  public static final ModuleConstants backRight =
+  private static final ModuleConstants backRight =
       new ModuleConstants("Back Right", 6, 7, Rotation2d.fromRadians(Math.PI / 2));
 
   protected final SysIdRoutine sysId;
@@ -90,7 +87,6 @@ public class SwerveSubsystem extends SubsystemBase {
     modules[1] = new Module(moduleIOS[1]);
     modules[2] = new Module(moduleIOS[2]);
     modules[3] = new Module(moduleIOS[3]);
-
     // Configure AutoBuilder for PathPlanner
     AutoBuilder.configureHolonomic(
         this::getPose,
@@ -129,8 +125,23 @@ public class SwerveSubsystem extends SubsystemBase {
                 this));
   }
 
+  /*
+  do *NOT* make this a proxy! we only want schedule-on-schedule, not end-on-end.
+  if end-on-end behavior is desired, use interruption instead
+  */
+  public Command pathFindCommand(Supplier<Pose2d> pose) {
+    return AutoBuilder.pathfindToPose(
+            pose.get(),
+            new PathConstraints(
+                MAX_LINEAR_SPEED,
+                4.0,
+                Units.degreesToRadians(MAX_ANGULAR_SPEED),
+                Units.degreesToRadians(720)))
+        .onlyWhile(AutoBuilder::isPathfindingConfigured);
+  }
+
   public static GyroIO getRealGyro() {
-    return GYRO_TYPE == Gyro.GyroType.PIGEON ? new GyroIOPigeon2() : new GyroIONavX();
+    return GYRO_TYPE == GyroMap.GyroType.PIGEON ? new GyroIOPigeon2() : new GyroIONavX();
   }
 
   public static ModuleIO[] getRealModules() {
@@ -142,10 +153,10 @@ public class SwerveSubsystem extends SubsystemBase {
           new ModuleIOTalonFX(backRight),
         }
         : new ModuleIO[] {
-          VORTEX_DRIVE ? new ModuleIOSparkFlex(frontLeft) : new ModuleIOSparkMax(frontLeft),
-          VORTEX_DRIVE ? new ModuleIOSparkFlex(frontRight) : new ModuleIOSparkMax(frontRight),
-          VORTEX_DRIVE ? new ModuleIOSparkFlex(backLeft) : new ModuleIOSparkMax(backLeft),
-          VORTEX_DRIVE ? new ModuleIOSparkFlex(backRight) : new ModuleIOSparkMax(backRight),
+          USING_VORTEX_DRIVE ? new ModuleIOSparkFlex(frontLeft) : new ModuleIOSparkMax(frontLeft),
+          USING_VORTEX_DRIVE ? new ModuleIOSparkFlex(frontRight) : new ModuleIOSparkMax(frontRight),
+          USING_VORTEX_DRIVE ? new ModuleIOSparkFlex(backLeft) : new ModuleIOSparkMax(backLeft),
+          USING_VORTEX_DRIVE ? new ModuleIOSparkFlex(backRight) : new ModuleIOSparkMax(backRight),
         };
   }
 
@@ -208,6 +219,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private void updateOdometry() {
     poseEstimator.update(rawGyroRotation, getModulePositions());
+    vision.getDebugField().setRobotPose(poseEstimator.getEstimatedPosition());
   }
 
   private void updateVision() {
@@ -218,7 +230,31 @@ public class SwerveSubsystem extends SubsystemBase {
                 poseEstimator.addVisionMeasurement(
                     timestampedUpdate.poseEstimate(),
                     timestampedUpdate.timestamp(),
-                    timestampedUpdate.stdDevs()));
+                    // todo *NO*
+                    timestampedUpdate
+                        .stdDevs()
+                        .times(
+                            MOVING_DEVIATION_EULER_MULTIPLIER
+                                    * Math.exp(
+                                        MOVING_DEVIATION_VELOCITY_MULTIPLIER
+                                            * Math.hypot(
+                                                getChassisSpeeds().vxMetersPerSecond,
+                                                getChassisSpeeds().vyMetersPerSecond))
+                                + 1
+                                - MOVING_DEVIATION_EULER_MULTIPLIER)
+                        .times(
+                            TURNING_DEVIATION_EULER_MULTIPLIER
+                                    * Math.exp(
+                                        TURNING_DEVIATION_VELOCITY_MULTIPLIER
+                                            * Math.hypot(
+                                                getChassisSpeeds().vxMetersPerSecond,
+                                                getChassisSpeeds().vyMetersPerSecond))
+                                + 1
+                                - TURNING_DEVIATION_EULER_MULTIPLIER)));
+  }
+
+  private ChassisSpeeds getChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getModuleStates());
   }
 
   public void runVelocity(ChassisSpeeds speeds) {
