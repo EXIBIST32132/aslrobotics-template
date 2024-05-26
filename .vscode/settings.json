@@ -30,6 +30,6 @@
   ],
   "java.test.defaultConfig": "WPIlibUnitTests",
   "[java]": {
-    "editor.defaultFormatter": "mwpb.java-prettier-formatter"
+    "editor.defaultFormatter": "redhat.java"
   }
 }

@@ -1,7 +1,7 @@
 {
-  "Joysticks": {
+  "Keyboard 0 Settings": {
     "window": {
-      "visible": false
+      "visible": true
     }
   },
   "keyboardJoysticks": [
@@ -15,20 +15,20 @@
           "decKey": 87,
           "incKey": 83
         },
-        {},
-        {},
         {
           "decKey": 81,
           "incKey": 69
         }
       ],
-      "axisCount": 5,
-      "buttonCount": 4,
+      "axisCount": 3,
+      "buttonCount": 6,
       "buttonKeys": [
         90,
         88,
         67,
-        86
+        86,
+        73,
+        79
       ],
       "povConfig": [
         {
@@ -51,7 +51,6 @@
           "incKey": 76
         },
         {
-          "decKey": 73,
           "incKey": 75
         }
       ],

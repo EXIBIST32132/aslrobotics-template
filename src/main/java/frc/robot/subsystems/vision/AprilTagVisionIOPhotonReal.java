@@ -71,6 +71,7 @@ public class AprilTagVisionIOPhotonReal implements AprilTagVisionIO {
         for (PhotonTrackedTarget target : result.targets) {
           var tagPose = APRIL_TAG_LAYOUT_FIELD.getTagPose(target.getFiducialId());
           if (tagPose.isEmpty()) continue;
+          target.getPoseAmbiguity();
 
           averageTagDistance +=
               estimatedPose

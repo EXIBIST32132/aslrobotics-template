@@ -5,6 +5,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -120,6 +121,19 @@ public class AprilTagVisionHelpers {
       double distanceMultiplier, double eulerMultiplier, double minimum) {
     private double computeUnitDeviation(double averageDistance) {
       return Math.max(minimum, eulerMultiplier * Math.exp(averageDistance * distanceMultiplier));
+    }
+  }
+
+  public static record MovingDeviationParams(
+      double velocityMultiplier, double eulerMultiplier, double minimum) {
+    private double computeVelocityDeviation(ChassisSpeeds robotVelocities) {
+      return Math.max(
+          minimum,
+          eulerMultiplier
+              * Math.exp(
+                  velocityMultiplier
+                      * Math.hypot(
+                          robotVelocities.vxMetersPerSecond, robotVelocities.vyMetersPerSecond)));
     }
   }
 

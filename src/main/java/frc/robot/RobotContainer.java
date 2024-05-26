@@ -16,11 +16,12 @@ package frc.robot;
 import static com.pathplanner.lib.auto.NamedCommands.registerCommand;
 import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
 import static edu.wpi.first.wpilibj2.command.Commands.startEnd;
-import static frc.robot.Config.Controllers.getDriverController;
-import static frc.robot.Config.Controllers.getOperatorController;
+import static frc.robot.Config.Controllers.*;
 import static frc.robot.Config.Subsystems;
+import static frc.robot.Config.Subsystems.*;
 import static frc.robot.Constants.MODE;
 import static frc.robot.Constants.RobotMode;
+import static frc.robot.Constants.VisionMap.GamePieceVisionMap.*;
 import static frc.robot.subsystems.swerve.SwerveSubsystem.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -29,6 +30,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Config.Controllers;
 import frc.robot.OI.CommandXboxControllerSubsystem;
@@ -62,7 +64,7 @@ public class RobotContainer {
 
   // Subsystems
   private final SwerveSubsystem drive =
-      Subsystems.DRIVETRAIN_ENABLED
+      DRIVETRAIN_ENABLED
           ? (MODE == RobotMode.REAL
               ? new SwerveSubsystem(getRealGyro(), getRealModules())
               : new SwerveSubsystem(new GyroIO() {}, getSimModules()))
@@ -161,24 +163,85 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
-    driver.x().onTrue(runOnce(drive::stopWithX, drive));
-    driver
-        .b()
-        .onTrue(
-            runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                    drive)
-                .ignoringDisable(true));
-    operator
-        .a()
-        .whileTrue(
-            startEnd(
-                () -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop, flywheel));
+    registerDrivetrain();
+    registerFlywheel();
+  }
+
+  private void registerDrivetrain() {
+    if (DRIVETRAIN_ENABLED && DRIVER_ENALBED) {
+      drive.setDefaultCommand(
+          DriveCommands.joystickDrive(
+              drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRawAxis(2)
+              //              () -> -driver.getRightX()
+              ));
+
+      driver
+          //          .start()
+          .leftBumper()
+          .whileTrue(
+              DriveCommands.manualOverrideAutoDrive(
+                      drive,
+                      () -> -driver.getLeftY(),
+                      () -> -driver.getLeftX(),
+                      () -> -driver.getRightX(),
+                      "Speaker")
+                  .andThen(driver.rumbleCmd(() -> 1, () -> 0).withTimeout(0.5)));
+      driver
+          //          .back()
+          .rightBumper()
+          .whileTrue(
+              DriveCommands.manualOverrideAutoDrive(
+                      drive,
+                      () -> -driver.getLeftY(),
+                      () -> -driver.getLeftX(),
+                      () -> -driver.getRightX(),
+                      "Source")
+                  .andThen(driver.rumbleCmd(() -> 0, () -> 1).withTimeout(0.5)));
+      //      driver.rightBumper().whileTrue(drive.followPathCommand(() -> fromPathFile("Example
+      // Path")));
+      //      driver
+      //          .a()
+      //          .whileTrue(
+      //              DriveCommands.driveOnTargetLock(
+      //                  drive,
+      //                  () -> -driver.getLeftY(),
+      //                  () -> -driver.getLeftX(),
+      //                  () ->
+      //                      Rotation2d.fromRadians(
+      //                          Math.atan2(
+      //                              drive.getNoteTranslation().get().getX(),
+      //                              drive.getNoteTranslation().get().getY()))));
+      //      driver
+      //          .a()
+      new Trigger(() -> drive.hasNote())
+          .whileTrue(
+              DriveCommands.orbit(
+                  drive,
+                  () -> -driver.getLeftY(),
+                  () -> -driver.getLeftX(),
+                  () -> drive.getNoteOffset()));
+
+      driver.x().onTrue(runOnce(drive::stopWithX, drive));
+      driver
+          .b()
+          .onTrue(
+              runOnce(
+                      () ->
+                          drive.setPose(
+                              new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                      drive)
+                  .ignoringDisable(true));
+    }
+  }
+
+  private void registerFlywheel() {
+    if (SHOOTER_ENABLED && OPERATOR_ENABLED) {
+      operator
+          .a()
+          .whileTrue(
+              startEnd(
+                  () -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop, flywheel));
+    }
   }
 
   /**

@@ -9,6 +9,7 @@ public final class Config {
 
     public static final boolean DRIVETRAIN_ENABLED = true;
     public static final boolean VISION_ENABLED = true;
+    public static final boolean GAME_PIECE_VISION_ENABLED = true;
     public static final boolean INTAKE_ENABLED = false;
     public static final boolean SHOOTER_ENABLED = true;
     public static final boolean CLIMBER_ENABLED = false;

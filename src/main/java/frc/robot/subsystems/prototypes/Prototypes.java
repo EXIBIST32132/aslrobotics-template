@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.Map;
 
+@Deprecated
 public class Prototypes extends SubsystemBase {
 
   // w records

@@ -59,7 +59,7 @@ public class AprilTagVisionIOPhotonSim implements AprilTagVisionIO {
       poseEstimators[i].setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
       var cameraProperties = new SimCameraProperties();
-      cameraProperties.setCalibration(1080, 960, Rotation2d.fromDegrees(120));
+      cameraProperties.setCalibration(854, 480, Rotation2d.fromDegrees(120));
       cameraProperties.setCalibError(0.25, 0.15);
       cameraProperties.setFPS(25.0);
       cameraProperties.setAvgLatencyMs(30.0);
@@ -68,7 +68,7 @@ public class AprilTagVisionIOPhotonSim implements AprilTagVisionIO {
       var simCamera = new PhotonCameraSim(camera, cameraProperties);
 
       sim.addCamera(simCamera, constants.robotToCamera());
-      simCamera.enableDrawWireframe(true);
+      // simCamera.enableDrawWireframe(true);
     }
 
     this.drivePoseSupplier = drivePoseSupplier;
@@ -132,17 +132,17 @@ public class AprilTagVisionIOPhotonSim implements AprilTagVisionIO {
 
       if (estimatedRobotPose.isPresent()) {
         getDebugField()
-            .getObject("VisionEstimation")
+            .getObject("VisionEstimation/" + i)
             .setPose(estimatedRobotPose.get().estimatedPose.toPose2d());
-      } else {
-        if (isNewResult) getDebugField().getObject("VisionEstimation").setPoses();
+      }
+      else {
+        if (isNewResult) getDebugField().getObject("VisionEstimation/" + i).setPoses();
       }
 
       if (isNewResult) previousTimestamp = latestTimestamp;
 
       optionalPoseEstimates[i] = estimatedRobotPose;
     }
-
     return optionalPoseEstimates;
   }
 

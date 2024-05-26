@@ -2,9 +2,11 @@ package frc.robot.subsystems.vision;
 
 import static frc.robot.Constants.VisionMap.GamePieceVisionMap.*;
 
-import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.LimelightHelpers;
+import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
+import org.photonvision.PhotonUtils;
 
 public class GamePieceVision extends SubsystemBase {
 
@@ -17,18 +19,53 @@ public class GamePieceVision extends SubsystemBase {
 
   public void periodic() {
     io.updateInputs(inputs);
+    Logger.recordOutput("Vision/Target Yaw", inputs.targetYaw);
   }
 
-  public Transform2d getTargetToRobotOffset() {
-    return inputs.hasTarget
-        ? LimelightHelpers.cameraToTargetTranslationOffset(
-                LimelightHelpers.targetToCameraDistance(
-                    DETECTOR_LIMELIGHT_HEIGHT, DETECTOR_LIMELIGHT_PITCH, 0, inputs.targetPitch),
-                inputs.targetYaw)
-            .plus(
-                new Transform2d(
-                    DETECTOR_LIMELIGHT_TO_ROBOT_CENTER.getTranslation(),
-                    DETECTOR_LIMELIGHT_TO_ROBOT_CENTER.getRotation()))
-        : new Transform2d();
+  public Transform2d getTargetToRobotOffset(Supplier<Pose2d> robotPose) {
+    if (inputs.hasTarget) {
+      // no helpers?
+      double targetDistanceMeters =
+          -PhotonUtils.calculateDistanceToTargetMeters(
+              DETECTOR_LIMELIGHT_HEIGHT,
+              GAME_PIECE_HEIGHT,
+              DETECTOR_LIMELIGHT_PITCH,
+              Math.toRadians(-inputs.targetPitch));
+      if (targetDistanceMeters > io.getConstants().cameraType().getNoisyDistance()) {
+        io.getDebugField().getObject("NotePosition").setPoses();
+        return new Transform2d();
+      }
+      Translation2d camToTargTrans =
+          PhotonUtils.estimateCameraToTargetTranslation(
+              targetDistanceMeters, Rotation2d.fromDegrees(inputs.targetYaw));
+      Transform2d robotToNoteTransform =
+          ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_2D.plus(
+              new Transform2d(camToTargTrans, Rotation2d.fromDegrees(0.0)));
+      Rotation2d targetAngleRobotRelative =
+          robotToNoteTransform.getTranslation().getAngle().plus(Rotation2d.fromDegrees(180));
+      var noteRobotRelativePose =
+          new Transform2d(robotToNoteTransform.getTranslation(), targetAngleRobotRelative);
+      var ret =
+          new Transform2d(
+                  noteRobotRelativePose.getTranslation(),
+                  robotPose.get().getRotation().minus(Rotation2d.fromDegrees(90)))
+              .plus(ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_2D.times(2));
+      io.getDebugField()
+          .getObject("NotePosition")
+          .setPose(new Pose2d(ret.getTranslation(), ret.getRotation()));
+      return new Transform2d(
+          robotToNoteTransform.getTranslation(),
+          robotToNoteTransform.getRotation().minus(targetAngleRobotRelative));
+    }
+    io.getDebugField().getObject("NotePosition").setPoses();
+    return new Transform2d();
+  }
+
+  public boolean hasNote() {
+    return inputs.hasTarget;
+  }
+
+  public double getNoteAngle() {
+    return inputs.targetYaw;
   }
 }

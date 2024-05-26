@@ -13,12 +13,14 @@
 
 package frc.robot;
 
+import static edu.wpi.first.math.util.Units.degreesToRadians;
+import static java.lang.Math.toRadians;
+
+import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import frc.robot.util.AprilTagVisionHelpers.TagCountDeviation;
@@ -52,9 +54,10 @@ public final class Constants {
 
     public static final class GyroMap {
 
-      public enum GyroType {
+      public static enum GyroType {
         PIGEON,
         NAVX,
+        ADIS,
       }
 
       public static final GyroType GYRO_TYPE = GyroType.PIGEON;
@@ -63,8 +66,8 @@ public final class Constants {
     }
 
     // TODO refactor into separate constants files in swerve
-    public static final boolean USING_TALON_DRIVE = false; // change to using kraken FOC?
-    public static final boolean USING_VORTEX_DRIVE = false && !USING_TALON_DRIVE;
+    public static final boolean USING_TALON_DRIVE = true; // change to using kraken FOC?
+    public static final boolean USING_VORTEX_DRIVE = true && !USING_TALON_DRIVE;
 
     public static final double TRACK_WIDTH = Units.inchesToMeters(23.5);
     public static final double WHEEL_BASE = Units.inchesToMeters(23.5);
@@ -72,14 +75,14 @@ public final class Constants {
     public static final double DRIVE_BASE_RADIUS = Math.hypot(TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0);
 
     /** feet per second -> meters per second */
-    public static final double MAX_LINEAR_SPEED = Units.feetToMeters(14.5);
+    public static final double MAX_LINEAR_SPEED = 4 /*Units.feetToMeters(10)*/;
     /** radians per second */
     public static final double MAX_ANGULAR_SPEED = MAX_LINEAR_SPEED / DRIVE_BASE_RADIUS;
 
     public static final double WHEEL_RADIUS = Units.inchesToMeters(1.5);
 
     // this and below for choreo and pathfinding
-    public static final double DRIVE_BASE_MASS = Units.lbsToKilograms(100.0);
+    public static final double DRIVE_BASE_MASS = Units.lbsToKilograms(60.0);
 
     public static final int DRIVE_MOTOR_CURRENT_LIMIT = 40;
     public static final int ROTATOR_MOTOR_CURRENT_LIMIT = 20;
@@ -100,8 +103,10 @@ public final class Constants {
     public static final double MAX_ANGULAR_ACCELERATION =
         4 * (DRIVE_GEAR_RATIO * DRIVE_MOTOR_MAX_TORQUE) / WHEEL_RADIUS * DRIVE_BASE_RADIUS / 15.0;
 
+    public static final PIDConstants TRANSLATION_CONSTANTS = new PIDConstants(15, 0, 0);
+    public static final PIDConstants ROTATION_CONSTANTS = new PIDConstants(15, 0, 0);
     public static final ReplanningConfig REPLANNING_CONFIG =
-        new ReplanningConfig(true, true, 0.6, 0.2);
+        new ReplanningConfig(true, true, 3, 0.1);
   }
 
   public static final class ShooterMap {
@@ -114,6 +119,20 @@ public final class Constants {
   }
 
   public static final class FieldMap {
+    public static enum Coordinates {
+      SPEAKER(new Pose2d(FIELD_LENGTH_METERS, 5.55, Rotation2d.fromDegrees(180))),
+      AMP(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+
+      private final Pose2d pose;
+
+      Coordinates(Pose2d pose) {
+        this.pose = pose;
+      }
+
+      public Pose2d getPose() {
+        return pose;
+      }
+    }
 
     public static final AprilTagFieldLayout APRIL_TAG_LAYOUT_FIELD =
         AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
@@ -126,13 +145,13 @@ public final class Constants {
     public static enum CameraType {
       OV2311(5.0),
       OV9281(5.0),
-      LIMELIGHT(5.0),
-      LIMELIGHT_3G(5.0),
+      LIMELIGHT(2.0),
+      LIMELIGHT_3G(3.0),
       TELEPHOTO_2311(5.0),
       TELEPHOTO_9281(5.0),
       TELEPHOTO_LIMELIGHT(5.0),
       TELEPHOTO_LIMELIGHT_3G(5.0),
-      UNKNOWN(Double.MAX_VALUE);
+      UNKNOWN(0.0);
 
       final double noisyDistance;
 
@@ -156,14 +175,26 @@ public final class Constants {
 
       public static final String DETECTOR_LIMELIGHT_NAME = "";
 
+      public static final double GAME_PIECE_HEIGHT = Units.inchesToMeters(5.0);
+
       // 2D stuff
-      public static final Transform2d DETECTOR_LIMELIGHT_TO_ROBOT_CENTER =
-          new Transform2d(-0.311, -0.276, Rotation2d.fromDegrees(180));
+      public static final Transform2d ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_2D =
+          new Transform2d(0, 0, Rotation2d.fromDegrees(180));
 
       // 3D stuff
-      public static final double DETECTOR_LIMELIGHT_PITCH = -0.349;
-      public static final double DETECTOR_LIMELIGHT_ROLL = 0.0;
-      public static final double DETECTOR_LIMELIGHT_HEIGHT = 0.453 + 0.066;
+      public static final double DETECTOR_LIMELIGHT_PITCH = toRadians(20);
+      public static final double DETECTOR_LIMELIGHT_ROLL = toRadians(0.0);
+      public static final double DETECTOR_LIMELIGHT_HEIGHT = 0.9;
+
+      public static final Transform3d ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_3D =
+          new Transform3d(
+              ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_2D.getX(),
+              ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_2D.getY(),
+              DETECTOR_LIMELIGHT_HEIGHT,
+              new Rotation3d(
+                  DETECTOR_LIMELIGHT_ROLL,
+                  DETECTOR_LIMELIGHT_PITCH,
+                  ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_2D.getRotation().getRadians()));
     }
 
     // TODO tune all of these!!
@@ -171,23 +202,45 @@ public final class Constants {
 
       public static final boolean LEFT_CAM_ENABLED = true;
       public static final VisionConstants LEFT_CAM_CONSTANTS =
-          new VisionConstants("", new Transform3d(), CameraType.TELEPHOTO_9281);
+          new VisionConstants(
+              "lefttagcam",
+              new Transform3d(
+                  new Translation3d(0.306, -0.3, 0.15),
+                  new Rotation3d(0, degreesToRadians(-28), degreesToRadians(-30))),
+              CameraType.TELEPHOTO_9281);
+
+      public static final boolean RIGHT_CAM_ENABLED = true;
+      public static final VisionConstants RIGHT_CAM_CONSTANTS =
+          new VisionConstants(
+              "righttagcam",
+              new Transform3d(
+                  new Translation3d(0.306, 0.3, 0.15),
+                  new Rotation3d(0, degreesToRadians(-28), degreesToRadians(30))),
+              CameraType.TELEPHOTO_9281);
 
       public static final List<TagCountDeviation> TAG_COUNT_DEVIATION_PARAMS =
           List.of(
               // 1 tag
               new TagCountDeviation(
-                  new UnitDeviationParams(.25, .4, .9), new UnitDeviationParams(.5, .7, 1.5)),
+                  new UnitDeviationParams(0.35, 0.40, 0.90),
+                  new UnitDeviationParams(0.50, 0.70, 1.50)),
               // 2 tags
               new TagCountDeviation(
-                  new UnitDeviationParams(.35, .1, .4), new UnitDeviationParams(.5, .7, 1.5)),
+                  new UnitDeviationParams(0.35, 0.1, 0.4),
+                  new UnitDeviationParams(0.50, 0.70, 1.50)),
               // 3+ tags
               new TagCountDeviation(
-                  new UnitDeviationParams(.25, .07, .25), new UnitDeviationParams(.15, 1, 1.5)));
-      public static final double MOVING_DEVIATION_EULER_MULTIPLIER = 0.1;
-      public static final double MOVING_DEVIATION_VELOCITY_MULTIPLIER = 0.1;
-      public static final double TURNING_DEVIATION_EULER_MULTIPLIER = 0.1;
-      public static final double TURNING_DEVIATION_VELOCITY_MULTIPLIER = 0.1;
+                  new UnitDeviationParams(0.25, 0.07, 0.25),
+                  new UnitDeviationParams(0.15, 1.0, 1.50)));
+
+      //      public static final UnitDeviationParams MOVING_DEVIATION_PARAMS =
+      //          new UnitDeviationParams(
+      //              MOVING_DEVIATION_VELOCITY_MULTIPLIER, MOVING_DEVIATION_EULER_MULTIPLIER, 1);
+      public static final double MOVING_DEVIATION_EULER_MULTIPLIER = 0.5;
+      public static final double MOVING_DEVIATION_VELOCITY_MULTIPLIER = 0.5;
+      public static final double TURNING_DEVIATION_EULER_MULTIPLIER = 0.5;
+      public static final double TURNING_DEVIATION_VELOCITY_MULTIPLIER = 0.5;
+      public static final double MAX_AMBIGUITY_CUTOFF = 0.05;
     }
   }
 }

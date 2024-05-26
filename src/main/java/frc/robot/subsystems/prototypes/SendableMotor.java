@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.TrapezoidProfileCommand;
 
+@Deprecated
 // package-private because Prototypes.java should be the only usage
 class SendableMotor implements Sendable, Subsystem {
 

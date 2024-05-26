@@ -1,38 +1,37 @@
 package frc.robot.subsystems.swerve;
 
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.Config.Subsystems.GAME_PIECE_VISION_ENABLED;
+import static frc.robot.Config.Subsystems.VISION_ENABLED;
 import static frc.robot.Constants.DriveMap.*;
 import static frc.robot.Constants.DriveMap.GyroMap.GYRO_TYPE;
 import static frc.robot.Constants.MODE;
 import static frc.robot.Constants.VisionMap.AprilTagVisionMap.*;
+import static frc.robot.Constants.VisionMap.GamePieceVisionMap.ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_3D;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.pathfinding.Pathfinding;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Config;
 import frc.robot.Constants;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
-import frc.robot.subsystems.vision.AprilTagVision;
-import frc.robot.subsystems.vision.AprilTagVisionIOPhotonReal;
-import frc.robot.subsystems.vision.AprilTagVisionIOPhotonSim;
-import frc.robot.util.LocalADStarAK;
+import frc.robot.subsystems.vision.*;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -40,12 +39,33 @@ import org.littletonrobotics.junction.Logger;
 public class SwerveSubsystem extends SubsystemBase {
 
   private final AprilTagVision vision =
-      Config.Subsystems.VISION_ENABLED
+      VISION_ENABLED
           ? (MODE == Constants.RobotMode.REAL
-              ? new AprilTagVision(new AprilTagVisionIOPhotonReal(LEFT_CAM_CONSTANTS))
+              ? new AprilTagVision(
+                  new AprilTagVisionIOPhotonReal(LEFT_CAM_CONSTANTS, RIGHT_CAM_CONSTANTS))
               : new AprilTagVision(
-                  new AprilTagVisionIOPhotonSim(this::getPose, LEFT_CAM_CONSTANTS)))
+                  new AprilTagVisionIOPhotonSim(
+                      this::getPose, LEFT_CAM_CONSTANTS, RIGHT_CAM_CONSTANTS)))
           : null;
+
+  private final GamePieceVision gamePieceVision =
+      GAME_PIECE_VISION_ENABLED
+          ? (MODE == Constants.RobotMode.REAL
+              ? new GamePieceVision(
+                  new GamePieceVisionIOLimelightReal(
+                      new Constants.VisionMap.VisionConstants(
+                          "notecam",
+                          ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_3D,
+                          Constants.VisionMap.CameraType.LIMELIGHT)))
+              : new GamePieceVision(
+                  new GamePieceVisionIOPhotonSim(
+                      this::getPose,
+                      new Constants.VisionMap.VisionConstants(
+                          "notecam",
+                          ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_3D,
+                          Constants.VisionMap.CameraType.LIMELIGHT))))
+          : null;
+
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
   private Rotation2d rawGyroRotation = new Rotation2d();
   private SwerveModulePosition[] lastModulePositions =
@@ -56,13 +76,14 @@ public class SwerveSubsystem extends SubsystemBase {
         new SwerveModulePosition(),
       };
 
+  private Pose2d odometryPose = new Pose2d();
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(
           kinematics,
           rawGyroRotation,
           lastModulePositions,
           new Pose2d(),
-          VecBuilder.fill(0.3, 0.3, 0.02),
+          VecBuilder.fill(1, 1, 1 * Math.PI),
           VecBuilder.fill(0.01, 0.01, 0.01));
 
   private final GyroIO gyroIO;
@@ -93,18 +114,24 @@ public class SwerveSubsystem extends SubsystemBase {
         this::setPose,
         () -> kinematics.toChassisSpeeds(getModuleStates()),
         this::runVelocity,
-        new HolonomicPathFollowerConfig(MAX_LINEAR_SPEED, DRIVE_BASE_RADIUS, REPLANNING_CONFIG),
+        new HolonomicPathFollowerConfig(
+            TRANSLATION_CONSTANTS,
+            ROTATION_CONSTANTS,
+            MAX_LINEAR_SPEED,
+            DRIVE_BASE_RADIUS,
+            REPLANNING_CONFIG),
         () ->
             DriverStation.getAlliance().isPresent()
                 && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
         this);
-    Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
         activePath ->
             Logger.recordOutput(
                 "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()])));
     PathPlannerLogging.setLogTargetPoseCallback(
         targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
+
+    //    PPHolonomicDriveController.setRotationTargetOverride(this::getRotationTargetOverride);
 
     // Configure SysId
     sysId =
@@ -125,23 +152,107 @@ public class SwerveSubsystem extends SubsystemBase {
                 this));
   }
 
+  private Optional<Rotation2d> getRotationTargetOverride() {
+    if (gamePieceVision.getTargetToRobotOffset(this::getPose).equals(new Transform2d()))
+      return Optional.of(
+          getPose()
+              .getTranslation()
+              .minus(Constants.FieldMap.Coordinates.SPEAKER.getPose().getTranslation())
+              .unaryMinus()
+              .getAngle());
+    else
+      return Optional.of(
+          gamePieceVision
+              .getTargetToRobotOffset(this::getPose)
+              .getTranslation()
+              .getAngle()
+              .rotateBy(Rotation2d.fromDegrees(-90)));
+
+    //    if (DriverStation.getAlliance().isPresent()
+    //        && DriverStation.getAlliance().get().equals(DriverStation.Alliance.Red))
+    //      if (getPose().getX() > Constants.FieldMap.FIELD_LENGTH_METERS / 2)
+    //        return Optional.of(
+    //            getPose()
+    //                .getTranslation()
+    //                .minus(Constants.FieldMap.Coordinates.SPEAKER.getPose().getTranslation())
+    //                .unaryMinus()
+    //                .getAngle());
+    //    return Optional.empty();
+  }
+
+  public double getNoteOffset() {
+    return gamePieceVision.getNoteAngle();
+  }
+
+  public boolean hasNote() {
+    return gamePieceVision.hasNote()
+        && !gamePieceVision.getTargetToRobotOffset(this::getPose).equals(new Transform2d());
+  }
+
+  public Command pidToPoseRobotRelative(Supplier<Pose2d> pose) {
+    TrapezoidProfile.Constraints X_CONSTRAINTS =
+        new TrapezoidProfile.Constraints(MAX_LINEAR_SPEED, MAX_LINEAR_ACCELERATION);
+
+    ProfiledPIDController xController = new ProfiledPIDController(20, 0, 0, X_CONSTRAINTS);
+    ProfiledPIDController yController = new ProfiledPIDController(20, 0, 0, X_CONSTRAINTS);
+
+    PIDController omegaPID = new PIDController(10, 0, 0);
+
+    xController.setTolerance(0.05);
+    xController.setTolerance(0.05);
+    omegaPID.setTolerance(1.5);
+    omegaPID.enableContinuousInput(-180, 180);
+
+    return Commands.defer(
+        () ->
+            new FunctionalCommand(
+                () -> {},
+                () -> {
+                  double xSpeed = xController.calculate(0, pose.get().getX());
+                  double ySpeed = yController.calculate(0, pose.get().getY());
+                  double omegaSpeed = omegaPID.calculate(0, pose.get().getRotation().getDegrees());
+                  this.runVelocity(new ChassisSpeeds(xSpeed, ySpeed, omegaSpeed));
+                },
+                interrupted -> {
+                  this.runVelocity(new ChassisSpeeds(0, 0, 0));
+                  omegaPID.close();
+                },
+                () -> omegaPID.atSetpoint() && xController.atGoal() && yController.atGoal(),
+                this),
+        Set.of(this));
+  }
+
   /*
   do *NOT* make this a proxy! we only want schedule-on-schedule, not end-on-end.
   if end-on-end behavior is desired, use interruption instead
   */
   public Command pathFindCommand(Supplier<Pose2d> pose) {
     return AutoBuilder.pathfindToPose(
-            pose.get(),
-            new PathConstraints(
-                MAX_LINEAR_SPEED,
-                4.0,
-                Units.degreesToRadians(MAX_ANGULAR_SPEED),
-                Units.degreesToRadians(720)))
-        .onlyWhile(AutoBuilder::isPathfindingConfigured);
+        pose.get(),
+        new PathConstraints(
+            MAX_LINEAR_SPEED, MAX_LINEAR_ACCELERATION, MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCELERATION),
+        0,
+        0);
+  }
+
+  public Command pathFindThenFollowPathCommand(Supplier<PathPlannerPath> path) {
+    return AutoBuilder.pathfindThenFollowPath(
+        path.get(),
+        new PathConstraints(
+            MAX_LINEAR_SPEED, MAX_LINEAR_ACCELERATION, MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCELERATION),
+        0);
+  }
+
+  public Command followPathCommand(Supplier<PathPlannerPath> path) {
+    return AutoBuilder.followPath(path.get());
   }
 
   public static GyroIO getRealGyro() {
-    return GYRO_TYPE == GyroMap.GyroType.PIGEON ? new GyroIOPigeon2() : new GyroIONavX();
+    return switch (GYRO_TYPE) {
+      case PIGEON -> new GyroIOPigeon2();
+      case NAVX -> new GyroIONavX();
+      case ADIS -> new GyroIOADIS();
+    };
   }
 
   public static ModuleIO[] getRealModules() {
@@ -172,6 +283,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public void periodic() {
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Drive/Gyro", gyroInputs);
+    Logger.recordOutput("Drive/Note Offset", getNoteOffset() + 180);
 
     for (var module : modules) {
       module.periodic();
@@ -212,23 +324,39 @@ public class SwerveSubsystem extends SubsystemBase {
       rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
     }
 
-    // Apply odometry update
+    // Apply odometry & vision updates
     updateOdometry();
-    updateVision();
+    if (VISION_ENABLED) {
+      updateVision();
+    }
+    if (GAME_PIECE_VISION_ENABLED) updateGamePieceVision();
   }
 
   private void updateOdometry() {
     poseEstimator.update(rawGyroRotation, getModulePositions());
-    vision.getDebugField().setRobotPose(poseEstimator.getEstimatedPosition());
+  }
+
+  private void updateGamePieceVision() {
+    Logger.recordOutput(
+        "Note offset",
+        gamePieceVision
+            .getTargetToRobotOffset(this::getPose)
+            .getTranslation()
+            .getAngle()
+            .rotateBy(Rotation2d.fromDegrees(-90))
+            .getDegrees());
+    Logger.recordOutput("Transform", gamePieceVision.getTargetToRobotOffset(this::getPose));
   }
 
   private void updateVision() {
     vision
-        .getProcessedPoseEstimates()
+        .processPoseEstimates()
         .forEach(
             timestampedUpdate ->
                 poseEstimator.addVisionMeasurement(
-                    timestampedUpdate.poseEstimate(),
+                    poseEstimator
+                        .getEstimatedPosition()
+                        .interpolate(timestampedUpdate.poseEstimate(), 0.25),
                     timestampedUpdate.timestamp(),
                     // todo *NO*
                     timestampedUpdate

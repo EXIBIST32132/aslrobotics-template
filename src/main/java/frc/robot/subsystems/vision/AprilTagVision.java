@@ -24,7 +24,7 @@ import org.littletonrobotics.junction.Logger;
  */
 public class AprilTagVision extends SubsystemBase {
 
-  private static final String NAME = "AprilTagVision";
+  private static final String LogKey = "AprilTagVision";
 
   private final AprilTagVisionIO io;
   private final AprilTagIOInputsLogged inputs = new AprilTagIOInputsLogged();
@@ -42,7 +42,7 @@ public class AprilTagVision extends SubsystemBase {
      * instead of a vararg of constants. would it be worth the re-refactoring?
      */
     io.updateInputs(inputs);
-    Logger.processInputs(NAME, inputs);
+    Logger.processInputs(LogKey, inputs);
   }
 
   // TODO multitag enforcement as well or allow lowest ambiguity?
@@ -62,7 +62,7 @@ public class AprilTagVision extends SubsystemBase {
         || Math.abs(poseEstimate.pose().getZ()) > 0.25);
   }
 
-  public List<TimestampedVisionUpdate> getProcessedPoseEstimates() {
+  public List<TimestampedVisionUpdate> processPoseEstimates() {
     List<TimestampedVisionUpdate> visionUpdates = new ArrayList<>();
 
     // TODO DANGER: arraylist being processed against standard arrays - check ordering!
@@ -70,10 +70,19 @@ public class AprilTagVision extends SubsystemBase {
 
     for (int i = 0; i < inputs.poseEstimates.size(); i++) {
       if (isInvalidEstimate(poseEstimates.get(i))
-          || poseEstimates.get(i).averageTagDistance() < io.getNoisyDistances()[i]) continue;
+          || poseEstimates.get(i).averageTagDistance() > io.getNoisyDistances()[i]) continue;
 
       double timestamp = poseEstimates.get(i).timestampSeconds();
       Pose3d robotPose = poseEstimates.get(i).pose();
+
+      Logger.recordOutput(
+          LogKey + "/Deviations/x/" + i, calculateVisionStdDevs(poseEstimates.get(i)).get(0, 0));
+      Logger.recordOutput(
+          LogKey + "/Deviations/y/" + i, calculateVisionStdDevs(poseEstimates.get(i)).get(1, 0));
+      Logger.recordOutput(
+          LogKey + "/Deviations/theta/" + i,
+          calculateVisionStdDevs(poseEstimates.get(i)).get(2, 0));
+      Logger.recordOutput(LogKey + "/IsValid/" + i, !isInvalidEstimate(poseEstimates.get(i)));
 
       visionUpdates.add(
           new TimestampedVisionUpdate(

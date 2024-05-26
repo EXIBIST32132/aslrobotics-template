@@ -19,8 +19,8 @@ public class AprilTagVisionTest {
 
   @Test
   void deviationsTest() {
-    assertEquals(0.664, vision.calculateVisionStdDevs(poseEstimate).get(0, 0), 1e-3);
-    assertEquals(0.664, vision.calculateVisionStdDevs(poseEstimate).get(1, 0), 1e-3);
+    assertEquals(0.2700, vision.calculateVisionStdDevs(poseEstimate).get(0, 0), 1e-3);
+    assertEquals(0.2700, vision.calculateVisionStdDevs(poseEstimate).get(1, 0), 1e-3);
     assertEquals(3.857, vision.calculateVisionStdDevs(poseEstimate).get(2, 0), 1e-3);
   }
 }

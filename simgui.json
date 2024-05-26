@@ -4,16 +4,45 @@
       "window": {
         "visible": false
       }
+    },
+    "Timing": {
+      "window": {
+        "visible": false
+      }
     }
   },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Auto Choices": "String Chooser",
-      "/SmartDashboard/VisionSystemSim-TagVisionSim/Sim Field": "Field2d"
+      "/SmartDashboard/VisionSystemSim-GamePieceVisionSim/Sim Field": "Field2d",
+      "/SmartDashboard/VisionSystemSim-TagVisionSim/Sim Field": "Field2d",
+      "/SmartDashboard/VisionSystemSim-VisionSim/Sim Field": "Field2d"
     },
     "windows": {
+      "/SmartDashboard/VisionSystemSim-GamePieceVisionSim/Sim Field": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/VisionSystemSim-TagVisionSim/Sim Field": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/VisionSystemSim-VisionSim/Sim Field": {
         "bottom": 1476,
         "height": 8.210550308227539,
         "left": 150,
@@ -27,9 +56,6 @@
     }
   },
   "NetworkTables": {
-    "Persistent Values": {
-      "open": false
-    },
     "Retained Values": {
       "open": false
     },
@@ -43,12 +69,31 @@
           },
           "open": true
         },
+        "Drive": {
+          "Gyro": {
+            "open": true
+          },
+          "open": true
+        },
         "Swerve": {
           "Back Left Module": {
             "open": true
           },
           "open": true
-        },
+        }
+      },
+      "CameraPublisher": {
+        "-processed": {
+          "open": true
+        }
+      },
+      "LiveWindow": {
+        "open": true
+      },
+      "PathPlanner": {
+        "open": true
+      },
+      "Shuffleboard": {
         "open": true
       },
       "SmartDashboard": {
@@ -62,6 +107,12 @@
     "Connections": {
       "open": true
     },
+    "Server": {
+      "open": true
+    },
     "visible": true
+  },
+  "NetworkTables View": {
+    "visible": false
   }
 }

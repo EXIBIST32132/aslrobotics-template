@@ -10,7 +10,10 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import java.util.function.DoubleSupplier;
 
-/** A CommandXboxController that implements Subsystem to allow the rumble to be mutexed. */
+/**
+ * A CommandXboxController that implements Subsystem to allow the rumble to be mutexed so that AK
+ * doesn't freak out about threading.
+ */
 public class CommandXboxControllerSubsystem extends CommandXboxController implements Subsystem {
 
   public CommandXboxControllerSubsystem(int port) {

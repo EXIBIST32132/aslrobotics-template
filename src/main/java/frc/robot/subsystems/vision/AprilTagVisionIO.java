@@ -12,7 +12,10 @@ import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 public interface AprilTagVisionIO {
   class AprilTagIOInputsLogged implements LoggableInputs {
-
+    /**
+     * The members of this record list are serialized and logged since the record itself is not an
+     * AKit-supported type.
+     */
     ArrayList<PoseEstimate> poseEstimates = new ArrayList<>();
 
     @Override

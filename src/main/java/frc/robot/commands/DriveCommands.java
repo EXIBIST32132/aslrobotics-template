@@ -13,10 +13,9 @@
 
 package frc.robot.commands;
 
-import static edu.wpi.first.wpilibj2.command.Commands.either;
-import static java.lang.Math.abs;
-
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -24,11 +23,11 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 public class DriveCommands {
 
@@ -80,32 +79,52 @@ public class DriveCommands {
         driveSubsystem);
   }
 
-  public Command manualOverrideAutoDrive(
+  public static Command driveOnTargetLock(
+      SwerveSubsystem driveSubsystem,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      Supplier<Rotation2d> targetRotation) {
+    PIDController pid = new PIDController(0.025, 0, 0.001);
+    pid.setTolerance(0.001);
+    pid.enableContinuousInput(-180, 180);
+    return joystickDrive(
+            driveSubsystem,
+            xSupplier,
+            ySupplier,
+            () ->
+                pid.calculate(
+                    driveSubsystem.getRotation().getDegrees(), targetRotation.get().getDegrees()))
+        .alongWith(Commands.runOnce(() -> Logger.recordOutput("setpoint", pid.getSetpoint())));
+  }
+
+  public static Command manualOverrideAutoDrive(
       SwerveSubsystem driveSubsystem,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier,
-      Supplier<Pose2d> targetPose) {
-    return either(
-            Commands.runOnce(driveSubsystem.pathFindCommand(targetPose)::schedule),
-            Commands.runOnce(
-                joystickDrive(driveSubsystem, xSupplier, ySupplier, omegaSupplier)::schedule),
-            () ->
-                abs(xSupplier.getAsDouble()) < DEADBAND
-                    || abs(ySupplier.getAsDouble()) < DEADBAND
-                    || abs(omegaSupplier.getAsDouble()) < DEADBAND)
-        .repeatedly()
+      String pathName) {
+    return driveSubsystem
+        .pathFindThenFollowPathCommand(() -> PathPlannerPath.fromPathFile(pathName))
         .until(
             () ->
-                driveSubsystem
-                            .getPose()
-                            .getTranslation()
-                            .getDistance(targetPose.get().getTranslation())
-                        < 0.1
-                    && driveSubsystem
-                            .getRotation()
-                            .minus(targetPose.get().getRotation())
-                            .getDegrees()
-                        < 0.5);
+                xSupplier.getAsDouble() > DEADBAND
+                    || ySupplier.getAsDouble() > DEADBAND
+                    || omegaSupplier.getAsDouble() > DEADBAND);
+  }
+
+  public static Command orbit(
+      SwerveSubsystem swerveSubsystem,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier rotationOverride) {
+    PIDController omegaPID = new PIDController(0.05, 0, 0.005);
+    omegaPID.setTolerance(1.5);
+    omegaPID.enableContinuousInput(-180, 180);
+
+    return joystickDrive(
+        swerveSubsystem,
+        xSupplier,
+        ySupplier,
+        () -> omegaPID.calculate(0, -rotationOverride.getAsDouble()));
   }
 }
