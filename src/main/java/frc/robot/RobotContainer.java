@@ -14,26 +14,32 @@
 package frc.robot;
 
 import static com.pathplanner.lib.auto.NamedCommands.registerCommand;
-import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
+import static com.pathplanner.lib.path.PathPlannerPath.fromPathFile;
 import static edu.wpi.first.wpilibj2.command.Commands.startEnd;
 import static frc.robot.Config.Controllers.*;
 import static frc.robot.Config.Subsystems;
-import static frc.robot.Config.Subsystems.*;
-import static frc.robot.Constants.MODE;
-import static frc.robot.Constants.RobotMode;
-import static frc.robot.Constants.VisionMap.GamePieceVisionMap.*;
+import static frc.robot.Config.Subsystems.DRIVETRAIN_ENABLED;
+import static frc.robot.Config.Subsystems.SHOOTER_ENABLED;
+import static frc.robot.GlobalConstants.FieldMap.Coordinates.AMP;
+import static frc.robot.GlobalConstants.FieldMap.Coordinates.SPEAKER;
+import static frc.robot.GlobalConstants.MODE;
+import static frc.robot.GlobalConstants.RobotMode;
 import static frc.robot.subsystems.swerve.SwerveSubsystem.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Config.Controllers;
-import frc.robot.OI.CommandXboxControllerSubsystem;
+import frc.robot.OI.DriverMap;
+import frc.robot.OI.OperatorMap;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
@@ -47,10 +53,15 @@ import frc.robot.subsystems.intake.IntakeSubsystem;
 import frc.robot.subsystems.leds.LEDIOPWM;
 import frc.robot.subsystems.leds.LEDIOSim;
 import frc.robot.subsystems.leds.LEDSubsystem;
+import frc.robot.subsystems.pivot.PivotIOReal;
+import frc.robot.subsystems.pivot.PivotIOSim;
+import frc.robot.subsystems.pivot.PivotSubsystem;
 import frc.robot.subsystems.prototypes.Prototypes;
 import frc.robot.subsystems.prototypes.Prototypes.PrototypeMotor;
 import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.util.AllianceFlipUtil;
+import frc.robot.util.GamePieceVisualizer;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
@@ -68,6 +79,13 @@ public class RobotContainer {
           ? (MODE == RobotMode.REAL
               ? new SwerveSubsystem(getRealGyro(), getRealModules())
               : new SwerveSubsystem(new GyroIO() {}, getSimModules()))
+          : null;
+
+  private final PivotSubsystem pivot =
+      Subsystems.PIVOT_ENABLED
+          ? (MODE == RobotMode.REAL
+              ? new PivotSubsystem(new PivotIOReal())
+              : new PivotSubsystem(new PivotIOSim()))
           : null;
 
   private final FlywheelSubsystem flywheel =
@@ -102,14 +120,11 @@ public class RobotContainer {
       Subsystems.PROTOTYPES_ENABLED ? new Prototypes(new PrototypeMotor(1, "Motor 1")) : null;
 
   // Driver controller
-  private final CommandXboxControllerSubsystem driver =
-      Controllers.DRIVER_ENALBED ? (CommandXboxControllerSubsystem) getDriverController() : null;
+  private final DriverMap driver = Controllers.DRIVER_ENALBED ? getDriverController() : null;
 
   // Operator controller
-  private final CommandXboxControllerSubsystem operator =
-      Controllers.OPERATOR_ENABLED
-          ? (CommandXboxControllerSubsystem) getOperatorController()
-          : null;
+  private final OperatorMap operator =
+      Controllers.OPERATOR_ENABLED ? getOperatorController() : null;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -165,79 +180,125 @@ public class RobotContainer {
   private void configureButtonBindings() {
     registerDrivetrain();
     registerFlywheel();
+
+    operator
+        .pivotToSpeaker()
+        .or(
+            new Trigger(
+                    () ->
+                        drive
+                                .getPose()
+                                .getTranslation()
+                                .getDistance(SPEAKER.getPose().getTranslation())
+                            < Units.feetToMeters(25))
+                .and(driver.alignToSpeaker()))
+        .whileTrue(
+            pivot.run(
+                () ->
+                    pivot.setPosition(
+                        () ->
+                            Math.atan2(
+                                2.1,
+                                drive
+                                    .getPose()
+                                    .getTranslation()
+                                    .getDistance(SPEAKER.getPose().getTranslation())))));
+
+    pivot.setDefaultCommand(pivot.run(() -> pivot.setPosition(() -> 0)));
+
+    leds.setDefaultCommand(
+        leds.setRunAlongCmd(
+            () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,
+            () -> Color.kBlack,
+            5,
+            1));
+
+    driver.testButton().onTrue(driver.rumble().withTimeout(1.0));
+
+    new Trigger(() -> Math.abs(drive.getNoteOffset()) < 5 && drive.getNoteOffset() != 0)
+        .whileTrue(leds.setBlinkingCmd(Color.kYellow, Color.kBlack, 5));
+
+    GamePieceVisualizer.setRobotPoseSupplier(drive::getPose);
+    GamePieceVisualizer.setTargetSupplier(
+        () ->
+            new Pose3d(
+                new Translation3d(
+                    SPEAKER.getPose().getTranslation().getX(),
+                    SPEAKER.getPose().getTranslation().getY(),
+                    2.1),
+                new Rotation3d()));
+    operator
+        .shoot()
+        .and(new Trigger(() -> flywheel.getVelocityRPM() > 1200))
+        .onTrue(GamePieceVisualizer.shoot(() -> 0.5, pivot::getPosition));
   }
 
   private void registerDrivetrain() {
     if (DRIVETRAIN_ENABLED && DRIVER_ENALBED) {
       drive.setDefaultCommand(
           DriveCommands.joystickDrive(
-              drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRawAxis(2)
-              //              () -> -driver.getRightX()
-              ));
+              drive, driver.getXAxis(), driver.getYAxis(), driver.getRotAxis()));
 
-      driver
+      /*driver
           //          .start()
           .leftBumper()
           .whileTrue(
               DriveCommands.manualOverrideAutoDrive(
-                      drive,
-                      () -> -driver.getLeftY(),
-                      () -> -driver.getLeftX(),
-                      () -> -driver.getRightX(),
-                      "Speaker")
-                  .andThen(driver.rumbleCmd(() -> 1, () -> 0).withTimeout(0.5)));
+                  drive,
+                  () -> -driver.getLeftY(),
+                  () -> -driver.getLeftX(),
+                  () -> -driver.getRightX(),
+                  "Speaker"));
       driver
           //          .back()
           .rightBumper()
           .whileTrue(
               DriveCommands.manualOverrideAutoDrive(
-                      drive,
-                      () -> -driver.getLeftY(),
-                      () -> -driver.getLeftX(),
-                      () -> -driver.getRightX(),
-                      "Source")
-                  .andThen(driver.rumbleCmd(() -> 0, () -> 1).withTimeout(0.5)));
-      //      driver.rightBumper().whileTrue(drive.followPathCommand(() -> fromPathFile("Example
-      // Path")));
-      //      driver
-      //          .a()
-      //          .whileTrue(
-      //              DriveCommands.driveOnTargetLock(
-      //                  drive,
-      //                  () -> -driver.getLeftY(),
-      //                  () -> -driver.getLeftX(),
-      //                  () ->
-      //                      Rotation2d.fromRadians(
-      //                          Math.atan2(
-      //                              drive.getNoteTranslation().get().getX(),
-      //                              drive.getNoteTranslation().get().getY()))));
-      //      driver
-      //          .a()
-      new Trigger(() -> drive.hasNote())
-          .whileTrue(
-              DriveCommands.orbit(
                   drive,
                   () -> -driver.getLeftY(),
                   () -> -driver.getLeftX(),
-                  () -> drive.getNoteOffset()));
+                  () -> -driver.getRightX(),
+                  "Source"));*/
+      //      driver.rightBumper().whileTrue(drive.followPathCommand(() -> fromPathFile("Example
+      // Path")));
 
-      driver.x().onTrue(runOnce(drive::stopWithX, drive));
       driver
-          .b()
-          .onTrue(
-              runOnce(
-                      () ->
-                          drive.setPose(
-                              new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                      drive)
-                  .ignoringDisable(true));
+          .alignToSpeaker()
+          .whileTrue(
+              DriveCommands.orbitWithDynamicTolerance(
+                  drive, driver.getXAxis(), driver.getYAxis(), SPEAKER::getPose));
+
+      //      driver.x().onTrue(runOnce(drive::stopWithX, drive));
+      //      driver
+      //        .b()
+      //        .onTrue(
+      //          runOnce(
+      //            () ->
+      //              drive.setPose(
+      //                new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+      //            drive)
+      //            .ignoringDisable(true));
+
+      new Trigger(
+              () ->
+                  drive.getPose().getTranslation().getDistance(AMP.getPose().getTranslation())
+                      <= 2.5)
+          .and(driver.pathToAmp())
+          .onTrue(drive.pathFindThenFollowPathCommand(() -> fromPathFile("Amp")));
+
+      driver
+          .alignToGamePiece()
+          .and(new Trigger(drive::hasNote))
+          .whileTrue(
+              DriveCommands.orbitWithDynamicTolerance(
+                  drive, driver.getXAxis(), driver.getYAxis(), drive::getNoteOffset, () -> 2.5));
     }
   }
 
   private void registerFlywheel() {
     if (SHOOTER_ENABLED && OPERATOR_ENABLED) {
       operator
-          .a()
+          .shoot()
           .whileTrue(
               startEnd(
                   () -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop, flywheel));

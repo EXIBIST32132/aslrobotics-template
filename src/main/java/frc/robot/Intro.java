@@ -1,7 +1,7 @@
 package frc.robot;
 
 /**
- * Hello! Welcome to the template repository for FRC teams 1797 and 1884! <br>
+ * Welcome to the template repository for FRC teams 1797 and 1884! <br>
  * <br>
  * Starting the 2024-25 season, we're going to be doing things differently than we have in the past.
  * (Feel free to explore the ASLRobotics and FRC1884 GitHub profiles to see the repos from previous
@@ -67,12 +67,12 @@ package frc.robot;
  * Because of the removal of the CommandMaps, all subsystem commands should now be scheduled <br>
  * <br>
  * <b>Credits</b><br>
- * Massive, massive thank you to FRC teams 5712 Hemlock's Gray Matter, 8033 Highlander Robotics, and
- * 6443 AEMBOT for providing their 2023-24 season repositories as inspiration for this project!
- * Without your gracious professionalism, we would not have been able to get this massive project
- * off the ground. Of course, we are also extremely grateful to team 6328 and everyone that has
- * helped maintain the incredible framework that is AdvantageKit, as well as the extensive
- * documentation that it thankfully has.
+ * Massive, massive thank you to FRC teams 5712, 8033, 6443, 6328, 5907, and 1683 for providing
+ * their 2023-24 season repositories as inspiration for this project! Without your gracious
+ * professionalism, we would not have been able to get this massive project off the ground. Of
+ * course, we are also extremely grateful to team 6328 and everyone that has helped maintain the
+ * incredible framework that is AdvantageKit, as well as the extensive documentation that it
+ * thankfully has.
  */
 public final class Intro {
 

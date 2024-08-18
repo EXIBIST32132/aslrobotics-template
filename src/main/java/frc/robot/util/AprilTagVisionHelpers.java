@@ -143,14 +143,30 @@ public class AprilTagVisionHelpers {
    * @param thetaParams the dynamic deviation parameters for rotation
    */
   public static record TagCountDeviation(
-      UnitDeviationParams xParams, UnitDeviationParams yParams, UnitDeviationParams thetaParams) {
+      UnitDeviationParams xParams,
+      UnitDeviationParams yParams,
+      UnitDeviationParams thetaParams,
+      MovingDeviationParams vParams,
+      MovingDeviationParams omegaParams) {
     /**
-     * @see TagCountDeviation
      * @param xyParams the dynamic deviation parameters for translation
      * @param thetaParams the dynamic deviation parameters for rotation
+     * @see TagCountDeviation
      */
+    public TagCountDeviation(
+        UnitDeviationParams xyParams,
+        UnitDeviationParams thetaParams,
+        MovingDeviationParams xyVelParams,
+        MovingDeviationParams thetaVelParams) {
+      this(xyParams, xyParams, thetaParams, xyVelParams, thetaVelParams);
+    }
+
     public TagCountDeviation(UnitDeviationParams xyParams, UnitDeviationParams thetaParams) {
-      this(xyParams, xyParams, thetaParams);
+      this(
+          xyParams,
+          thetaParams,
+          new MovingDeviationParams(0, 0, 0),
+          new MovingDeviationParams(0, 0, 0));
     }
 
     public Matrix<N3, N1> computeDeviation(double averageDistance) {
@@ -160,6 +176,25 @@ public class AprilTagVisionHelpers {
           xParams.computeUnitDeviation(averageDistance),
           yParams.computeUnitDeviation(averageDistance),
           thetaParams.computeUnitDeviation(averageDistance));
+    }
+
+    public double computeVelDeviationMulti(ChassisSpeeds speeds) {
+      return Math.max(
+              vParams.minimum,
+              vParams.eulerMultiplier
+                      * Math.exp(
+                          vParams.velocityMultiplier
+                              * Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond))
+                  + 1
+                  - vParams.eulerMultiplier)
+          * Math.max(
+              vParams.minimum,
+              omegaParams.eulerMultiplier
+                      * Math.exp(
+                          omegaParams.velocityMultiplier
+                              * Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond))
+                  + 1
+                  - omegaParams.eulerMultiplier);
     }
   }
 

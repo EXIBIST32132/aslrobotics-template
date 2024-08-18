@@ -3,11 +3,13 @@ package frc.robot.subsystems.swerve;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.Config.Subsystems.GAME_PIECE_VISION_ENABLED;
 import static frc.robot.Config.Subsystems.VISION_ENABLED;
-import static frc.robot.Constants.DriveMap.*;
-import static frc.robot.Constants.DriveMap.GyroMap.GYRO_TYPE;
-import static frc.robot.Constants.MODE;
-import static frc.robot.Constants.VisionMap.AprilTagVisionMap.*;
-import static frc.robot.Constants.VisionMap.GamePieceVisionMap.ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_3D;
+import static frc.robot.GlobalConstants.FieldMap.Coordinates.SPEAKER;
+import static frc.robot.GlobalConstants.MODE;
+import static frc.robot.subsystems.swerve.SwerveMap.*;
+import static frc.robot.subsystems.swerve.SwerveMap.GyroMap.GYRO_TYPE;
+import static frc.robot.subsystems.vision.VisionMap.CameraType.LIMELIGHT;
+import static frc.robot.subsystems.vision.apriltagvision.AprilTagVisionMap.*;
+import static java.lang.Math.PI;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
@@ -24,14 +26,25 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants;
+import frc.robot.GlobalConstants;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
-import frc.robot.subsystems.vision.*;
+import frc.robot.subsystems.vision.apriltagvision.AprilTagVision;
+import frc.robot.subsystems.vision.apriltagvision.AprilTagVisionIOPhotonReal;
+import frc.robot.subsystems.vision.apriltagvision.AprilTagVisionIOPhotonSim;
+import frc.robot.subsystems.vision.gamepiecevision.GamePieceVision;
+import frc.robot.subsystems.vision.gamepiecevision.GamePieceVisionIOLimelightReal;
+import frc.robot.subsystems.vision.gamepiecevision.GamePieceVisionIOPhotonSim;
+import frc.robot.subsystems.vision.gamepiecevision.GamePieceVisionMap;
 import java.util.Optional;
-import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -40,7 +53,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private final AprilTagVision vision =
       VISION_ENABLED
-          ? (MODE == Constants.RobotMode.REAL
+          ? (MODE == GlobalConstants.RobotMode.REAL
               ? new AprilTagVision(
                   new AprilTagVisionIOPhotonReal(LEFT_CAM_CONSTANTS, RIGHT_CAM_CONSTANTS))
               : new AprilTagVision(
@@ -48,22 +61,18 @@ public class SwerveSubsystem extends SubsystemBase {
                       this::getPose, LEFT_CAM_CONSTANTS, RIGHT_CAM_CONSTANTS)))
           : null;
 
+  private final BuiltInAccelerometer accelerometer =
+      new BuiltInAccelerometer(BuiltInAccelerometer.Range.k4G);
+  private final Timer driftTimer = new Timer();
+
   private final GamePieceVision gamePieceVision =
       GAME_PIECE_VISION_ENABLED
-          ? (MODE == Constants.RobotMode.REAL
+          ? (MODE == GlobalConstants.RobotMode.REAL
               ? new GamePieceVision(
-                  new GamePieceVisionIOLimelightReal(
-                      new Constants.VisionMap.VisionConstants(
-                          "notecam",
-                          ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_3D,
-                          Constants.VisionMap.CameraType.LIMELIGHT)))
+                  new GamePieceVisionIOLimelightReal(GamePieceVisionMap.NOTE_CAM_CONSTANTS))
               : new GamePieceVision(
                   new GamePieceVisionIOPhotonSim(
-                      this::getPose,
-                      new Constants.VisionMap.VisionConstants(
-                          "notecam",
-                          ROBOT_CENTER_TO_DETECTOR_LIMELIGHT_3D,
-                          Constants.VisionMap.CameraType.LIMELIGHT))))
+                      this::getPose, GamePieceVisionMap.NOTE_CAM_CONSTANTS)))
           : null;
 
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
@@ -76,15 +85,16 @@ public class SwerveSubsystem extends SubsystemBase {
         new SwerveModulePosition(),
       };
 
-  private Pose2d odometryPose = new Pose2d();
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(
           kinematics,
           rawGyroRotation,
           lastModulePositions,
           new Pose2d(),
-          VecBuilder.fill(1, 1, 1 * Math.PI),
-          VecBuilder.fill(0.01, 0.01, 0.01));
+          VecBuilder.fill(1, 1, 0.01),
+          VecBuilder.fill(0.01, 0.01, PI));
+
+  static final Lock odometryLock = new ReentrantLock();
 
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -92,13 +102,13 @@ public class SwerveSubsystem extends SubsystemBase {
 
   // add the CANCoder id between the rotator id and offset params
   private static final ModuleConstants frontLeft =
-      new ModuleConstants("Front Left", 0, 1, Rotation2d.fromRadians(-Math.PI / 2));
+      new ModuleConstants("Front Left", 0, 1, Rotation2d.fromRadians(-PI / 2));
   private static final ModuleConstants frontRight =
       new ModuleConstants("Front Right", 2, 3, Rotation2d.fromRadians(0));
   private static final ModuleConstants backLeft =
-      new ModuleConstants("Back Left", 4, 5, Rotation2d.fromRadians(Math.PI));
+      new ModuleConstants("Back Left", 4, 5, Rotation2d.fromRadians(PI));
   private static final ModuleConstants backRight =
-      new ModuleConstants("Back Right", 6, 7, Rotation2d.fromRadians(Math.PI / 2));
+      new ModuleConstants("Back Right", 6, 7, Rotation2d.fromRadians(PI / 2));
 
   protected final SysIdRoutine sysId;
 
@@ -157,7 +167,7 @@ public class SwerveSubsystem extends SubsystemBase {
       return Optional.of(
           getPose()
               .getTranslation()
-              .minus(Constants.FieldMap.Coordinates.SPEAKER.getPose().getTranslation())
+              .minus(SPEAKER.getPose().getTranslation())
               .unaryMinus()
               .getAngle());
     else
@@ -181,12 +191,12 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public double getNoteOffset() {
-    return gamePieceVision.getNoteAngle();
+    return hasNote() ? gamePieceVision.getNoteAngle() : 0;
   }
 
   public boolean hasNote() {
     return gamePieceVision.hasNote()
-        && !gamePieceVision.getTargetToRobotOffset(this::getPose).equals(new Transform2d());
+        && gamePieceVision.getNoteDistance() < LIMELIGHT.getNoisyDistance();
   }
 
   public Command pidToPoseRobotRelative(Supplier<Pose2d> pose) {
@@ -203,7 +213,7 @@ public class SwerveSubsystem extends SubsystemBase {
     omegaPID.setTolerance(1.5);
     omegaPID.enableContinuousInput(-180, 180);
 
-    return Commands.defer(
+    return this.defer(
         () ->
             new FunctionalCommand(
                 () -> {},
@@ -218,8 +228,7 @@ public class SwerveSubsystem extends SubsystemBase {
                   omegaPID.close();
                 },
                 () -> omegaPID.atSetpoint() && xController.atGoal() && yController.atGoal(),
-                this),
-        Set.of(this));
+                this));
   }
 
   /*
@@ -249,7 +258,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public static GyroIO getRealGyro() {
     return switch (GYRO_TYPE) {
-      case PIGEON -> new GyroIOPigeon2();
+      case PIGEON -> new GyroIOPigeon2(USING_TALON_DRIVE);
       case NAVX -> new GyroIONavX();
       case ADIS -> new GyroIOADIS();
     };
@@ -281,9 +290,24 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void periodic() {
+    odometryLock.lock(); // Prevents odometry updates while reading data
+    gyroIO.updateInputs(gyroInputs);
+    for (var module : modules) {
+      module.updateInputs();
+    }
+    odometryLock.unlock();
+
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Drive/Gyro", gyroInputs);
     Logger.recordOutput("Drive/Note Offset", getNoteOffset() + 180);
+
+    Logger.recordOutput("Drive/Zeroed Pose", new Pose2d());
+    Logger.recordOutput("Drive/MechZero", new Pose3d[] {new Pose3d()});
+
+    Logger.recordOutput(
+        "Drive/SpeakerOffset",
+        SPEAKER.getPose().getTranslation().minus(getPose().getTranslation()).getAngle().getDegrees()
+            - getRotation().getDegrees());
 
     for (var module : modules) {
       module.periodic();
@@ -302,38 +326,40 @@ public class SwerveSubsystem extends SubsystemBase {
       Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
     }
 
-    // Read wheel positions and deltas from each module
-    SwerveModulePosition[] modulePositions = getModulePositions();
-    SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
-    for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
-      moduleDeltas[moduleIndex] =
-          new SwerveModulePosition(
-              modulePositions[moduleIndex].distanceMeters
-                  - lastModulePositions[moduleIndex].distanceMeters,
-              modulePositions[moduleIndex].angle);
-      lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
-    }
+    // Update odometry
+    double[] sampleTimestamps =
+        modules[0].getOdometryTimestamps(); // All signals are sampled together
+    int sampleCount = sampleTimestamps.length;
+    for (int i = 0; i < sampleCount; i++) {
+      // Read wheel positions and deltas from each module
+      SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
+      SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
+      for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
+        modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
+        moduleDeltas[moduleIndex] =
+            new SwerveModulePosition(
+                modulePositions[moduleIndex].distanceMeters
+                    - lastModulePositions[moduleIndex].distanceMeters,
+                modulePositions[moduleIndex].angle);
+        lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
+      }
 
-    // Update gyro angle
-    if (gyroInputs.connected) {
-      // Use the real gyro angle
-      rawGyroRotation = gyroInputs.yawPosition;
-    } else {
-      // Use the angle delta from the kinematics and module deltas
-      Twist2d twist = kinematics.toTwist2d(moduleDeltas);
-      rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
-    }
+      // Update gyro angle
+      if (gyroInputs.connected) {
+        // Use the real gyro angle
+        rawGyroRotation = gyroInputs.yawPosition;
+      } else {
+        // Use the angle delta from the kinematics and module deltas
+        Twist2d twist = kinematics.toTwist2d(moduleDeltas);
+        rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
+      }
 
-    // Apply odometry & vision updates
-    updateOdometry();
-    if (VISION_ENABLED) {
-      updateVision();
+      // Apply update
+      poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, getModulePositions());
+      // Apply vision updates
+      if (VISION_ENABLED) updateVision();
+      if (GAME_PIECE_VISION_ENABLED) updateGamePieceVision();
     }
-    if (GAME_PIECE_VISION_ENABLED) updateGamePieceVision();
-  }
-
-  private void updateOdometry() {
-    poseEstimator.update(rawGyroRotation, getModulePositions());
   }
 
   private void updateGamePieceVision() {
@@ -359,26 +385,7 @@ public class SwerveSubsystem extends SubsystemBase {
                         .interpolate(timestampedUpdate.poseEstimate(), 0.25),
                     timestampedUpdate.timestamp(),
                     // todo *NO*
-                    timestampedUpdate
-                        .stdDevs()
-                        .times(
-                            MOVING_DEVIATION_EULER_MULTIPLIER
-                                    * Math.exp(
-                                        MOVING_DEVIATION_VELOCITY_MULTIPLIER
-                                            * Math.hypot(
-                                                getChassisSpeeds().vxMetersPerSecond,
-                                                getChassisSpeeds().vyMetersPerSecond))
-                                + 1
-                                - MOVING_DEVIATION_EULER_MULTIPLIER)
-                        .times(
-                            TURNING_DEVIATION_EULER_MULTIPLIER
-                                    * Math.exp(
-                                        TURNING_DEVIATION_VELOCITY_MULTIPLIER
-                                            * Math.hypot(
-                                                getChassisSpeeds().vxMetersPerSecond,
-                                                getChassisSpeeds().vyMetersPerSecond))
-                                + 1
-                                - TURNING_DEVIATION_EULER_MULTIPLIER)));
+                    timestampedUpdate.stdDevs()));
   }
 
   private ChassisSpeeds getChassisSpeeds() {

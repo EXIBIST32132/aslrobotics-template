@@ -1,7 +1,8 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
-import frc.robot.OI.CommandXboxControllerSubsystem;
+import static frc.robot.GlobalConstants.ROBOT;
+
+import frc.robot.OI.*;
 
 public final class Config {
 
@@ -11,9 +12,10 @@ public final class Config {
     public static final boolean VISION_ENABLED = true;
     public static final boolean GAME_PIECE_VISION_ENABLED = true;
     public static final boolean INTAKE_ENABLED = false;
+    public static final boolean PIVOT_ENABLED = true;
     public static final boolean SHOOTER_ENABLED = true;
     public static final boolean CLIMBER_ENABLED = false;
-    public static final boolean LEDS_ENABLED = false;
+    public static final boolean LEDS_ENABLED = true;
 
     public static final boolean PROTOTYPES_ENABLED = false;
   }
@@ -24,20 +26,24 @@ public final class Config {
     public static final int DRIVER_PORT = 0;
 
     public static final boolean OPERATOR_ENABLED = true;
-    public static final int OPERATOR_PORT = 1;
+    public static final int OPERATOR_PORT = 0;
     public static final boolean JOYSTICK_OPERATOR_ENABLED = false && OPERATOR_ENABLED;
     public static final boolean BOARD_OPERATOR_ENABLED =
         !JOYSTICK_OPERATOR_ENABLED && OPERATOR_ENABLED;
 
-    public static CommandGenericHID getDriverController() {
-      return new CommandXboxControllerSubsystem(DRIVER_PORT);
+    public static DriverMap getDriverController() {
+      return new SimControllerMap(DRIVER_PORT);
     }
 
-    public static CommandGenericHID getOperatorController() {
+    public static OperatorMap getOperatorController() {
       // return BOARD_OPERATOR_ENABLED
       //   ? new CommandBoardControllerSubsystem(OPERATOR_PORT)
       //   : new CommandXboxControllerSubsystem(OPERATOR_PORT);
-      return new CommandXboxControllerSubsystem(OPERATOR_PORT);
+      return switch (ROBOT) {
+        case COMPBOT -> new BoardOperatorMap(OPERATOR_PORT);
+        case DEVBOT -> new BoardOperatorMap(OPERATOR_PORT);
+        case SIMBOT -> new SimControllerMap(OPERATOR_PORT);
+      };
     }
   }
 }

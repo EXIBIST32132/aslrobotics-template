@@ -13,7 +13,7 @@
 
 package frc.robot.subsystems.flywheel;
 
-import static frc.robot.Constants.ShooterMap.GEAR_RATIO;
+import static frc.robot.subsystems.flywheel.FlywheelMap.GEAR_RATIO;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;

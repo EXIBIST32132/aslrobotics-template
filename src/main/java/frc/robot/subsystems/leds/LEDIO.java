@@ -1,5 +1,7 @@
 package frc.robot.subsystems.leds;
 
+import static frc.robot.subsystems.leds.LEDMap.LED_LENGTH;
+
 import edu.wpi.first.wpilibj.util.Color;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -26,7 +28,7 @@ public interface LEDIO {
   void setLED(int i, Color color);
 
   default void setColor(Color color) {
-    for (int i = 0; i < LEDSubsystem.NUM_LEDS; i++) {
+    for (int i = 0; i < LED_LENGTH; i++) {
       setLED(i, color);
     }
   }

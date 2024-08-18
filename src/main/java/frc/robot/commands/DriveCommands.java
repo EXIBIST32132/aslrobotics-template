@@ -13,6 +13,9 @@
 
 package frc.robot.commands;
 
+import static edu.wpi.first.wpilibj2.command.Commands.run;
+import static edu.wpi.first.wpilibj2.command.Commands.runOnce;
+
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -23,7 +26,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -43,7 +46,7 @@ public class DriveCommands {
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
-    return Commands.run(
+    return run(
         () -> {
           // Apply deadband
           double linearMagnitude =
@@ -94,7 +97,7 @@ public class DriveCommands {
             () ->
                 pid.calculate(
                     driveSubsystem.getRotation().getDegrees(), targetRotation.get().getDegrees()))
-        .alongWith(Commands.runOnce(() -> Logger.recordOutput("setpoint", pid.getSetpoint())));
+        .alongWith(runOnce(() -> Logger.recordOutput("setpoint", pid.getSetpoint())));
   }
 
   public static Command manualOverrideAutoDrive(
@@ -112,19 +115,59 @@ public class DriveCommands {
                     || omegaSupplier.getAsDouble() > DEADBAND);
   }
 
-  public static Command orbit(
+  public static Command orbitWithDynamicTolerance(
       SwerveSubsystem swerveSubsystem,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
-      DoubleSupplier rotationOverride) {
-    PIDController omegaPID = new PIDController(0.05, 0, 0.005);
-    omegaPID.setTolerance(1.5);
-    omegaPID.enableContinuousInput(-180, 180);
-
-    return joystickDrive(
+      Supplier<Pose2d> targetPose) {
+    return orbitWithDynamicTolerance(
         swerveSubsystem,
         xSupplier,
         ySupplier,
-        () -> omegaPID.calculate(0, -rotationOverride.getAsDouble()));
+        () ->
+            -targetPose
+                    .get()
+                    .getTranslation()
+                    .minus(swerveSubsystem.getPose().getTranslation())
+                    .getAngle()
+                    .getDegrees()
+                + swerveSubsystem.getRotation().getDegrees(),
+        () ->
+            targetPose
+                .get()
+                .getTranslation()
+                .getDistance(swerveSubsystem.getPose().getTranslation()));
+  }
+
+  public static Command orbitWithDynamicTolerance(
+      SwerveSubsystem swerveSubsystem,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier rotationOverride,
+      DoubleSupplier distance) {
+    PIDController omegaPID = new PIDController(0.025, 0, 0);
+    omegaPID.setTolerance(0.25);
+    omegaPID.enableContinuousInput(-180, 180);
+
+    return joystickDrive(
+            swerveSubsystem,
+            xSupplier,
+            ySupplier,
+            () -> omegaPID.calculate(0, orbitWrap(rotationOverride)))
+        .alongWith(
+            runOnce(() -> omegaPID.setTolerance(Math.exp(-1 * (distance.getAsDouble()) + 1.25)))
+                .repeatedly());
+  }
+
+  // to stop jittering if facing opposite direction
+  // TODO fix
+  private static double orbitWrap(DoubleSupplier rotationOverride) {
+    if (Math.abs(rotationOverride.getAsDouble() - 90) < 5)
+      return -(rotationOverride.getAsDouble() - 45);
+    else if (Math.abs(rotationOverride.getAsDouble() + 90) < 5)
+      return -(rotationOverride.getAsDouble() + 45);
+    else if (rotationOverride.getAsDouble() > 90) return -(rotationOverride.getAsDouble() - 90);
+    else if (rotationOverride.getAsDouble() < -90) return -(rotationOverride.getAsDouble() + 90);
+    else return -rotationOverride.getAsDouble();
   }
 }

@@ -6,6 +6,8 @@ import edu.wpi.first.math.kinematics.Kinematics;
 import edu.wpi.first.wpilibj.DriverStation;
 import org.photonvision.PhotonPoseEstimator;
 
+/** Purely for experimentation, DNT */
+@Deprecated
 public final class PhotonVisionHelpers {
   private static Pose2d robotPose = null;
   private static PhotonPoseEstimator photonPoseEstimator;

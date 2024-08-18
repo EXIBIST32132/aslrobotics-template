@@ -13,14 +13,14 @@
 
 package frc.robot.subsystems.swerve;
 
-import static frc.robot.Constants.DriveMap.WHEEL_RADIUS;
+import static frc.robot.subsystems.swerve.SwerveMap.WHEEL_RADIUS;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.Constants;
+import frc.robot.GlobalConstants;
 import org.littletonrobotics.junction.Logger;
 
 public class Module {
@@ -50,12 +50,14 @@ public class Module {
   private Double speedSetpoint = null; // Setpoint for closed loop control, null for open loop
   private Rotation2d turnRelativeOffset = null; // Relative + Offset = Absolute
 
+  private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
+
   public Module(ModuleIO io) {
     this.io = io;
 
     // Switch constants based on mode (the physics simulator is treated as a
     // separate robot with different tuning)
-    switch (Constants.MODE) {
+    switch (GlobalConstants.MODE) {
       case REAL:
       case REPLAY:
         driveFeedforward = new SimpleMotorFeedforward(0.1, 0.13);
@@ -77,8 +79,15 @@ public class Module {
     turnFeedback.enableContinuousInput(-Math.PI, Math.PI);
   }
 
-  public void periodic() {
+  /**
+   * Update inputs without running the rest of the periodic logic. This is useful since these
+   * updates need to be properly thread-locked.
+   */
+  public void updateInputs() {
     io.updateInputs(inputs);
+  }
+
+  public void periodic() {
     Logger.processInputs(String.format("Swerve/%s Module", io.getModuleName()), inputs);
 
     // On first cycle, reset relative turn encoder
@@ -108,6 +117,17 @@ public class Module {
             driveFeedforward.calculate(velocityRadPerSec)
                 + driveFeedback.calculate(inputs.driveVelocityRadPerSec, velocityRadPerSec));
       }
+    }
+
+    // Calculate positions for odometry
+    int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
+    odometryPositions = new SwerveModulePosition[sampleCount];
+    for (int i = 0; i < sampleCount; i++) {
+      double positionMeters = inputs.odometryDrivePositionsRad[i] * WHEEL_RADIUS;
+      Rotation2d angle =
+          inputs.odometryTurnPositions[i].plus(
+              turnRelativeOffset != null ? turnRelativeOffset : new Rotation2d());
+      odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
     }
   }
 
@@ -171,6 +191,16 @@ public class Module {
   /** Returns the module state (turn angle and drive velocity). */
   public SwerveModuleState getState() {
     return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
+  }
+
+  /** Returns the module positions received this cycle. */
+  public SwerveModulePosition[] getOdometryPositions() {
+    return odometryPositions;
+  }
+
+  /** Returns the timestamps of the samples received this cycle. */
+  public double[] getOdometryTimestamps() {
+    return inputs.odometryTimestamps;
   }
 
   /** Returns the drive velocity in radians/sec. */

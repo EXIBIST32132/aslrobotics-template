@@ -1,6 +1,6 @@
 package frc.robot.subsystems;
 
-import static frc.robot.subsystems.Superstructure.SuperStates.*;
+import static frc.robot.subsystems.Superstructure.SuperStates.IDLING;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 

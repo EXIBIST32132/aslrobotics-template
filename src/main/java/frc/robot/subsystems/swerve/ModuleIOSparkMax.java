@@ -13,15 +13,16 @@
 
 package frc.robot.subsystems.swerve;
 
-import static frc.robot.Constants.DriveMap.*;
+import static frc.robot.subsystems.swerve.SwerveMap.*;
 
+import com.revrobotics.*;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkAbsoluteEncoder;
+import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotController;
+import java.util.OptionalDouble;
+import java.util.Queue;
 
 /**
  * Module IO implementation for SparkMax drive motor controller, SparkMax turn motor controller (NEO
@@ -42,7 +43,11 @@ public class ModuleIOSparkMax implements ModuleIO {
 
   private final RelativeEncoder driveEncoder;
   private final RelativeEncoder turnRelativeEncoder;
+  // AnalogInput
   private final SparkAbsoluteEncoder turnAbsoluteEncoder;
+  private final Queue<Double> timestampQueue;
+  private final Queue<Double> drivePositionQueue;
+  private final Queue<Double> turnPositionQueue;
 
   private final boolean ROTATOR_INVERTED = true;
   private final Rotation2d absoluteEncoderOffset;
@@ -83,6 +88,34 @@ public class ModuleIOSparkMax implements ModuleIO {
 
     driveSparkMax.setCANTimeout(0);
     turnSparkMax.setCANTimeout(0);
+
+    driveSparkMax.setPeriodicFramePeriod(
+        PeriodicFrame.kStatus2, (int) (1000.0 / ODOMETRY_FREQUENCY));
+    turnSparkMax.setPeriodicFramePeriod(
+        PeriodicFrame.kStatus2, (int) (1000.0 / ODOMETRY_FREQUENCY));
+    timestampQueue = SparkMaxOdometryThread.getInstance().makeTimestampQueue();
+    drivePositionQueue =
+        SparkMaxOdometryThread.getInstance()
+            .registerSignal(
+                () -> {
+                  double value = driveEncoder.getPosition();
+                  if (driveSparkMax.getLastError() == REVLibError.kOk) {
+                    return OptionalDouble.of(value);
+                  } else {
+                    return OptionalDouble.empty();
+                  }
+                });
+    turnPositionQueue =
+        SparkMaxOdometryThread.getInstance()
+            .registerSignal(
+                () -> {
+                  double value = turnRelativeEncoder.getPosition();
+                  if (turnSparkMax.getLastError() == REVLibError.kOk) {
+                    return OptionalDouble.of(value);
+                  } else {
+                    return OptionalDouble.empty();
+                  }
+                });
 
     driveSparkMax.burnFlash();
     turnSparkMax.burnFlash();

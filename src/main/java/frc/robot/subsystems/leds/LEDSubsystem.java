@@ -4,10 +4,13 @@
 
 package frc.robot.subsystems.leds;
 
+import static edu.wpi.first.wpilibj2.command.Commands.either;
+import static edu.wpi.first.wpilibj2.command.Commands.repeatingSequence;
+import static frc.robot.subsystems.leds.LEDMap.LED_LENGTH;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -15,9 +18,6 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class LEDSubsystem extends SubsystemBase {
-
-  public static final int NUM_LEDS = 36;
-
   private final LEDIO io;
   private final LEDIOInputsAutoLogged inputs = new LEDIOInputsAutoLogged();
 
@@ -48,7 +48,7 @@ public class LEDSubsystem extends SubsystemBase {
   }
 
   public Command setBlinkingCmd(Color onColor, Color offColor, double frequency) {
-    return Commands.repeatingSequence(
+    return repeatingSequence(
         setSolidCmd(onColor).withTimeout(1.0 / frequency),
         setSolidCmd(offColor).withTimeout(1.0 / frequency));
   }
@@ -57,8 +57,8 @@ public class LEDSubsystem extends SubsystemBase {
   public Command setProgressCmd(Color color, DoubleSupplier progress) {
     return this.run(
         () -> {
-          for (int i = 0; i < NUM_LEDS; i++) {
-            setIndex(i, i < progress.getAsDouble() * NUM_LEDS ? color : Color.kBlack);
+          for (int i = 0; i < LED_LENGTH; i++) {
+            setIndex(i, i < progress.getAsDouble() * LED_LENGTH ? color : Color.kBlack);
           }
         });
   }
@@ -66,10 +66,10 @@ public class LEDSubsystem extends SubsystemBase {
   public Command setRainbowCmd() {
     return this.run(
         () -> {
-          for (int i = 0; i < NUM_LEDS; i++) {
+          for (int i = 0; i < LED_LENGTH; i++) {
             setIndex(i, Color.fromHSV((int) rainbowStart % 180 + i, 255, 255));
           }
-          rainbowStart += 6;
+          rainbowStart += 1;
         });
   }
 
@@ -79,17 +79,17 @@ public class LEDSubsystem extends SubsystemBase {
         () -> {
           setSolid(colorBg.get());
           for (int i = (int) dashStart; i < dashStart + dashLength; i++) {
-            setIndex(i % NUM_LEDS, colorDash.get());
+            setIndex(i % LED_LENGTH, colorDash.get());
           }
 
-          dashStart += NUM_LEDS * frequency * 0.020;
-          dashStart %= NUM_LEDS;
+          dashStart += LED_LENGTH * frequency * 0.020;
+          dashStart %= LED_LENGTH;
         });
   }
 
   public Command defaultStateDisplayCmd(BooleanSupplier enabled, BooleanSupplier targetIsSpeaker) {
-    return Commands.either(
-            Commands.either(
+    return either(
+            either(
                 this.setBlinkingCmd(new Color("#ffff00"), new Color(), 10.0)
                     .until(() -> !targetIsSpeaker.getAsBoolean() || !enabled.getAsBoolean()),
                 this.setBlinkingCmd(new Color("#ff7777"), new Color(), 10.0)

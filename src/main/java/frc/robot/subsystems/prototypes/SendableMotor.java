@@ -1,5 +1,8 @@
 package frc.robot.subsystems.prototypes;
 
+import static edu.wpi.first.wpilibj2.command.Commands.repeatingSequence;
+import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
+
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkFlex;
@@ -11,7 +14,6 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.TrapezoidProfileCommand;
 
@@ -99,10 +101,10 @@ class SendableMotor implements Sendable, Subsystem {
   public Command positionRangeCommand() {
     return profiledPositionCommand()
         .alongWith(
-            Commands.repeatingSequence(
-                Commands.runOnce(
+            repeatingSequence(
+                runOnce(
                     () -> goalPos = goalPos == LOWER_POS_LIMIT ? UPPER_POS_LIMIT : LOWER_POS_LIMIT),
-                Commands.waitSeconds(3.0)))
+                waitSeconds(3.0)))
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf)
         .onlyWhile(() -> enabled);
   }
@@ -122,7 +124,7 @@ class SendableMotor implements Sendable, Subsystem {
   }
 
   public Command toggleEnable() {
-    return Commands.runOnce(() -> enabled = !enabled);
+    return runOnce(() -> enabled = !enabled);
   }
 
   @Override

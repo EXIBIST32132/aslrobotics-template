@@ -18,7 +18,6 @@ import org.littletonrobotics.junction.AutoLog;
 public interface FlywheelIO {
   @AutoLog
   public static class FlywheelIOInputs {
-
     public double shooterPositionRad = 0.0;
     public double shooterVelocityRadPerSec = 0.0;
     public double shooterAppliedVolts = 0.0;

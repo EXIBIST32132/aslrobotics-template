@@ -10,6 +10,7 @@ public class GyroIONavX implements GyroIO {
   public GyroIONavX() {
     // default constructor uses the MXP port on the RIO, which is what we want
     navx = new AHRS();
+    navx.registerCallback((sysTS, sensorTS, data, context) -> {}, this);
   }
 
   @Override

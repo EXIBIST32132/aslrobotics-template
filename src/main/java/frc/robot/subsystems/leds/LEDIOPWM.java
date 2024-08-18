@@ -1,5 +1,8 @@
 package frc.robot.subsystems.leds;
 
+import static frc.robot.subsystems.leds.LEDMap.LED_LENGTH;
+import static frc.robot.subsystems.leds.LEDMap.LED_PORT;
+
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
@@ -16,8 +19,8 @@ public class LEDIOPWM implements LEDIO {
   private final AddressableLEDBuffer buffer;
 
   public LEDIOPWM() {
-    led = new AddressableLED(3);
-    buffer = new AddressableLEDBuffer(LEDSubsystem.NUM_LEDS);
+    led = new AddressableLED(LED_PORT);
+    buffer = new AddressableLEDBuffer(LED_LENGTH);
     led.setLength(buffer.getLength());
     led.start();
   }
