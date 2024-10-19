@@ -5,8 +5,6 @@ import org.littletonrobotics.junction.AutoLog;
 public interface IntakeIO {
   @AutoLog
   public static class IntakeIOInputs {
-
-    public double intakeVelocityRadPerSecond = 0.0;
     public double intakeAppliedVolts = 0.0;
     public double intakeCurrentAmps = 0.0;
   }
@@ -15,6 +13,4 @@ public interface IntakeIO {
 
   /** Run the intake at a specified voltage */
   public void setVoltage(final double volts);
-
-  public void setVelocity(final double radiansPerSecond, final double ffVolts);
 }
