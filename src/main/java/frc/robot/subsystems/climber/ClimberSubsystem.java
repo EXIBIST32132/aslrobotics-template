@@ -4,20 +4,22 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ClimberSubsystem extends SubsystemBase {
   public enum ClimberMode {
-    ZERO(0.0),           // Intake is off
-    MAXHEIGHT(1.0);         // Maximum Height
+    ZERO(0.0), // Intake is off
+    MAXHEIGHT(1.0); // Maximum Height
     final double height;
 
     ClimberMode(double height) {
       this.height = height;
     }
   }
+
   private final ClimberIO io;
   private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
 
   public ClimberSubsystem(ClimberIO io) {
     this.io = io;
   }
+
   @Override
   public void periodic() {
     io.updateInputs(inputs);
@@ -41,13 +43,12 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   /** resets encoders */
-  public void resetEncoder(){
+  public void resetEncoder() {
     io.resetEncoder();
   }
 
   /** sets the motors to mirror one another */
-  public void setHoming(boolean homingBool){
+  public void setHoming(boolean homingBool) {
     io.setHoming(homingBool);
   }
-
 }

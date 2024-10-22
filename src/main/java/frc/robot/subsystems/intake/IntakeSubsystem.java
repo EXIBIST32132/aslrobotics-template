@@ -1,15 +1,15 @@
 package frc.robot.subsystems.intake;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class IntakeSubsystem extends SubsystemBase {
 
   public enum IntakeMode {
-    OFF(0.0),       // Intake is off
-    FAST(12.0),     // Maximum forward voltage
+    OFF(0.0), // Intake is off
+    FAST(12.0), // Maximum forward voltage
     REVERSE(-12.0); // Maximum reverse voltage
 
     final double voltage;
@@ -24,7 +24,8 @@ public class IntakeSubsystem extends SubsystemBase {
   private IntakeMode currentState = IntakeMode.OFF;
 
   // Debouncer to filter out noise or temporary spikes in current
-  private final Debouncer currentDebouncer = new Debouncer(0.2, DebounceType.kRising); // 200ms debounce
+  private final Debouncer currentDebouncer =
+      new Debouncer(0.2, DebounceType.kRising); // 200ms debounce
 
   public IntakeSubsystem(IntakeIO io) {
     this.io = io;
@@ -59,9 +60,11 @@ public class IntakeSubsystem extends SubsystemBase {
 
   /** Trigger based on current draw (beam brake alternative using current detection) */
   public Trigger hasNote() {
-    return new Trigger(() ->
-            this.currentState == IntakeMode.FAST  // Detect only while intake is running forward
-                    && currentDebouncer.calculate(inputs.intakeCurrentAmps > 40)  // Debounced current detection
-    );
+    return new Trigger(
+        () ->
+            this.currentState == IntakeMode.FAST // Detect only while intake is running forward
+                && currentDebouncer.calculate(
+                    inputs.intakeCurrentAmps > 40) // Debounced current detection
+        );
   }
 }
