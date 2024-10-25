@@ -42,4 +42,9 @@ public class IntakeIOSim implements IntakeIO {
     pid.setSetpoint(velocityRadPerSec);
     this.ffVolts = ffVolts;
   }
+
+  @Override
+  public void configurePID(double kP, double kI, double kD) {
+
+  }
 }

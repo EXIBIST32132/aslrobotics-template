@@ -26,7 +26,7 @@ public interface PivotIO {
   public void setPosition(double angleRad, double ffVolts);
 
   /** Stop in open loop. */
-  public void stop();
+  public default void stop() {}
 
   /** Set position PID constants. */
   public void configurePID(double kP, double kI, double kD);

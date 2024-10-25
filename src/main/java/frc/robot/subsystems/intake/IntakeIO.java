@@ -14,7 +14,7 @@ public interface IntakeIO {
   /** Run the intake at a specified voltage */
   public  void setVoltage(final double volts);
 
-  public  void setVelocity(double radiansPerSecond, double ffVolts);
+  public void setVelocity(double radiansPerSecond, double ffVolts);
 
-  public  void configurePID(double kP, double kI, double kD);
+  public void configurePID(double kP, double kI, double kD);
 }
