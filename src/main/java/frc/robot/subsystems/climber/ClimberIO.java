@@ -1,5 +1,6 @@
 package frc.robot.subsystems.climber;
 
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ClimberIO {
@@ -7,8 +8,6 @@ public interface ClimberIO {
   public static class ClimberIOInputs {
     public double climberLeftPositionMeters = 0.0;
     public double climberRightPositionMeters = 0.0;
-    public double climberLeftVelocityMetersPerSec = 0.0;
-    public double climberRightVelocityMetersPerSec = 0.0;
     public double climberLeftAppliedVolts = 0.0;
     public double climberRightAppliedVolts = 0.0;
     public double[] climberCurrentAmps =
@@ -39,8 +38,8 @@ public interface ClimberIO {
     resetEncoder(0);
   }
 
-  public default boolean isCurrentLimited() {
-    return false;
+  public default Trigger isCurrentLimited() {
+    return null;
   }
 
   public default boolean isLeftCurrentLimited() {
@@ -50,4 +49,6 @@ public interface ClimberIO {
   public default boolean isRightCurrentLimited() {
     return false;
   }
+
+  public default void configurePID(double kP, double kI, double kD) {}
 }

@@ -29,6 +29,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
   public IntakeSubsystem(IntakeIO io) {
     this.io = io;
+    this.io.configurePID(1,1,1); // TODO: Find PID Values
   }
 
   @Override

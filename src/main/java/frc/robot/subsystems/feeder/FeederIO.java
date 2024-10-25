@@ -10,10 +10,12 @@ public interface FeederIO {
     public double feederVelocityRadPerSecond = 0.0;
   }
 
-  public void updateInputs(final FeederIOInputs inputs);
+  public default void updateInputs(final FeederIOInputs inputs){}
 
   /** Run the feeder at a specified voltage */
-  public void setVoltage(final double volts);
+  public default void setVoltage(final double volts){}
 
-  public void setVelocity(double radiansPerSecond, double ffVolts);
+  public default void setVelocity(double radiansPerSecond, double ffVolts){}
+
+  public default void configurePID(double kP, double kI, double kD) {}
 }
