@@ -18,28 +18,28 @@ public interface ClimberIO {
   }
 
   /** Updates the set of loggable inputs. */
-  public default void updateInputs(ClimberIOInputs inputs) {}
+  public void updateInputs(ClimberIOInputs inputs);
 
   /** Sets the target of the climber * */
-  public default void setPosition(double climberPositionRad) {}
+  public void setPosition(double climberPositionRad);
 
   /** Run open loop at the specified voltage. */
-  public default void setVoltage(double volts) {}
+  public void setVoltage(double volts);
 
-  public default void setLeftVoltage(double volts) {}
+  public void setLeftVoltage(double volts);
 
-  public default void setRightVoltage(double volts) {}
+  public void setRightVoltage(double volts);
 
-  public default void setHoming(boolean homingBool) {}
+  public void setHoming(boolean homingBool);
 
-  public default void resetEncoder(final double position) {}
+  public void resetEncoder(final double position);
 
   public default void resetEncoder() {
     resetEncoder(0);
   }
 
-  public default Trigger isCurrentLimited() {
-    return null;
+  public default boolean isCurrentLimited() {
+    return false;
   }
 
   public default boolean isLeftCurrentLimited() {
@@ -50,5 +50,5 @@ public interface ClimberIO {
     return false;
   }
 
-  public default void configurePID(double kP, double kI, double kD) {}
+  public void configurePID(double kP, double kI, double kD);
 }

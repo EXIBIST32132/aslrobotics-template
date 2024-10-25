@@ -10,11 +10,11 @@ public interface IntakeIO {
     public double intakeVelocityRadPerSecond = 0.0;
   }
 
-  public default void updateInputs(final IntakeIOInputs inputs) {}
+  public void updateInputs(final IntakeIOInputs inputs);
   /** Run the intake at a specified voltage */
-  public default void setVoltage(final double volts) {}
+  public  void setVoltage(final double volts);
 
-  public default void setVelocity(double radiansPerSecond, double ffVolts) {}
+  public  void setVelocity(double radiansPerSecond, double ffVolts);
 
-  public default void configurePID(double kP, double kI, double kD) {}
+  public  void configurePID(double kP, double kI, double kD);
 }

@@ -83,11 +83,8 @@ public class ClimberIOReal implements ClimberIO {
   }
 
   @Override
-  public Trigger isCurrentLimited() {
-    return new Trigger(
-        () ->
-            leftClimber.getOutputCurrent()
-                > 50); // TODO: find a way to get current limits from a motor
+  public boolean isCurrentLimited() {
+    return leftClimber.getOutputCurrent()>50; // TODO: find a way to get current limits from a motor
   }
 
   @Override
