@@ -16,6 +16,9 @@ public class ModuleIOInputsAutoLogged extends ModuleIO.ModuleIOInputs
     table.put("TurnVelocityRadPerSec", turnVelocityRadPerSec);
     table.put("TurnAppliedVolts", turnAppliedVolts);
     table.put("TurnCurrentAmps", turnCurrentAmps);
+    table.put("OdometryTimestamps", odometryTimestamps);
+    table.put("OdometryDrivePositionsRad", odometryDrivePositionsRad);
+    table.put("OdometryTurnPositions", odometryTurnPositions);
   }
 
   @Override
@@ -29,6 +32,9 @@ public class ModuleIOInputsAutoLogged extends ModuleIO.ModuleIOInputs
     turnVelocityRadPerSec = table.get("TurnVelocityRadPerSec", turnVelocityRadPerSec);
     turnAppliedVolts = table.get("TurnAppliedVolts", turnAppliedVolts);
     turnCurrentAmps = table.get("TurnCurrentAmps", turnCurrentAmps);
+    odometryTimestamps = table.get("OdometryTimestamps", odometryTimestamps);
+    odometryDrivePositionsRad = table.get("OdometryDrivePositionsRad", odometryDrivePositionsRad);
+    odometryTurnPositions = table.get("OdometryTurnPositions", odometryTurnPositions);
   }
 
   public ModuleIOInputsAutoLogged clone() {
@@ -42,6 +48,9 @@ public class ModuleIOInputsAutoLogged extends ModuleIO.ModuleIOInputs
     copy.turnVelocityRadPerSec = this.turnVelocityRadPerSec;
     copy.turnAppliedVolts = this.turnAppliedVolts;
     copy.turnCurrentAmps = this.turnCurrentAmps.clone();
+    copy.odometryTimestamps = this.odometryTimestamps.clone();
+    copy.odometryDrivePositionsRad = this.odometryDrivePositionsRad.clone();
+    copy.odometryTurnPositions = this.odometryTurnPositions.clone();
     return copy;
   }
 }
