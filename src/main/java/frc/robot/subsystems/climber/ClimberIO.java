@@ -1,5 +1,6 @@
 package frc.robot.subsystems.climber;
 
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ClimberIO {
@@ -7,8 +8,6 @@ public interface ClimberIO {
   public static class ClimberIOInputs {
     public double climberLeftPositionMeters = 0.0;
     public double climberRightPositionMeters = 0.0;
-    public double climberLeftVelocityMetersPerSec = 0.0;
-    public double climberRightVelocityMetersPerSec = 0.0;
     public double climberLeftAppliedVolts = 0.0;
     public double climberRightAppliedVolts = 0.0;
     public double[] climberCurrentAmps =
@@ -19,21 +18,21 @@ public interface ClimberIO {
   }
 
   /** Updates the set of loggable inputs. */
-  public default void updateInputs(ClimberIOInputs inputs) {}
+  public void updateInputs(ClimberIOInputs inputs);
 
   /** Sets the target of the climber * */
-  public default void setPosition(double climberPositionRad) {}
+  public void setPosition(double climberPositionRad);
 
   /** Run open loop at the specified voltage. */
-  public default void setVoltage(double volts) {}
+  public void setVoltage(double volts);
 
-  public default void setLeftVoltage(double volts) {}
+  public void setLeftVoltage(double volts);
 
-  public default void setRightVoltage(double volts) {}
+  public void setRightVoltage(double volts);
 
-  public default void setHoming(boolean homingBool) {}
+  public void setHoming(boolean homingBool);
 
-  public default void resetEncoder(final double position) {}
+  public void resetEncoder(final double position);
 
   public default void resetEncoder() {
     resetEncoder(0);
@@ -50,4 +49,6 @@ public interface ClimberIO {
   public default boolean isRightCurrentLimited() {
     return false;
   }
+
+  public void configurePID(double kP, double kI, double kD);
 }

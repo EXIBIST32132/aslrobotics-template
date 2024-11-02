@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Documents.aslrobotics-template.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Documents.aslrobotics-template.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/aslrobotics-template.iml" filepath="$PROJECT_DIR$/.idea/aslrobotics-template.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/aslrobotics-template.main.iml" filepath="$PROJECT_DIR$/.idea/modules/aslrobotics-template.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/aslrobotics-template.test.iml" filepath="$PROJECT_DIR$/.idea/modules/aslrobotics-template.test.iml" />
     </modules>
   </component>

@@ -12,17 +12,22 @@ public interface PivotIO {
   }
 
   /** Updates the set of loggable inputs. */
-  public default void updateInputs(PivotIOInputsAutoLogged inputs) {}
+  public default void updateInputs(
+      PivotIOInputsAutoLogged
+          inputs) {} // TODO: figure out which to use as in PivotIOSim it is this instead of
+  // PivotIOInputs
+
+  public void updateInputs(PivotIOInputs inputs);
 
   /** Run open loop at the specified voltage. */
-  public default void setVoltage(double volts) {}
+  public void setVoltage(double volts);
 
   /** Run closed loop at the specified velocity. */
-  public default void setPosition(double angleRad, double ffVolts) {}
+  public void setPosition(double angleRad, double ffVolts);
 
   /** Stop in open loop. */
   public default void stop() {}
 
   /** Set position PID constants. */
-  public default void configurePID(double kP, double kI, double kD) {}
+  public void configurePID(double kP, double kI, double kD);
 }

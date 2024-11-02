@@ -19,7 +19,9 @@ public class PivotIOSim implements PivotIO {
   private double appliedVolts = 0.0;
 
   @Override
-  public void updateInputs(PivotIOInputsAutoLogged inputs) {
+  public void updateInputs(
+      PivotIOInputsAutoLogged
+          inputs) { // TODO: figure out why it is PivotIOAutoLogged, and not PivotIOInputs
     if (closedLoop) {
       appliedVolts = MathUtil.clamp(pid.calculate(sim.getAngleRads()) + ffVolts, -12.0, 12.0);
       sim.setInputVoltage(appliedVolts);
