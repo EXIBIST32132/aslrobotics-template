@@ -44,7 +44,5 @@ public class IntakeIOSim implements IntakeIO {
   }
 
   @Override
-  public void configurePID(double kP, double kI, double kD) {
-
-  }
+  public void configurePID(double kP, double kI, double kD) {}
 }

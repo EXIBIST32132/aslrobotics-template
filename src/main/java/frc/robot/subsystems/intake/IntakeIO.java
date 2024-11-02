@@ -12,7 +12,7 @@ public interface IntakeIO {
 
   public void updateInputs(final IntakeIOInputs inputs);
   /** Run the intake at a specified voltage */
-  public  void setVoltage(final double volts);
+  public void setVoltage(final double volts);
 
   public void setVelocity(double radiansPerSecond, double ffVolts);
 

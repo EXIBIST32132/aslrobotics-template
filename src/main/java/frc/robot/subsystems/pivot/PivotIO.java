@@ -12,11 +12,6 @@ public interface PivotIO {
   }
 
   /** Updates the set of loggable inputs. */
-  public default void updateInputs(
-      PivotIOInputsAutoLogged
-          inputs) {} // TODO: figure out which to use as in PivotIOSim it is this instead of
-  // PivotIOInputs
-
   public void updateInputs(PivotIOInputs inputs);
 
   /** Run open loop at the specified voltage. */

@@ -1,7 +1,6 @@
 package frc.robot.subsystems.climber;
 
 import com.revrobotics.*;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class ClimberIOReal implements ClimberIO {
   private final CANSparkMax leftClimber =
@@ -84,7 +83,8 @@ public class ClimberIOReal implements ClimberIO {
 
   @Override
   public boolean isCurrentLimited() {
-    return leftClimber.getOutputCurrent()>50; // TODO: find a way to get current limits from a motor
+    return leftClimber.getOutputCurrent()
+        > 50; // TODO: find a way to get current limits from a motor
   }
 
   @Override
