@@ -18,6 +18,7 @@ import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.GlobalConstants;
@@ -96,9 +97,13 @@ public class FlywheelSubsystem extends SubsystemBase {
     Logger.recordOutput("Flywheel/SetpointRPM", velocityRPM);
   }
 
+  public Command runVelocityCmd(double velocityRPM) {
+    return Commands.run(() -> runVelocity(velocityRPM));
+  }
+
   /** Stops the flywheel. */
-  public void stop() {
-    io.stop();
+  public Command stop() {
+    return Commands.run(() -> io.stop());
   }
 
   /** Returns a command to run a quasistatic test in the specified direction. */

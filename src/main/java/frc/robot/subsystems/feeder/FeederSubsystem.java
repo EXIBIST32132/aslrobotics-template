@@ -2,6 +2,8 @@ package frc.robot.subsystems.feeder;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -45,19 +47,17 @@ public class FeederSubsystem extends SubsystemBase {
   }
 
   /** Stop the feeder */
-  public void stop() {
-    setfeederMode(feederMode.OFF);
+  public Command stop() {
+    return Commands.run(() -> setfeederMode(feederMode.OFF));
   }
 
   /** Run the feeder in reverse */
-  public void reverse() {
-    setfeederMode(feederMode.REVERSE);
+  public Command reverse() {
+    return Commands.run(() -> setfeederMode(feederMode.REVERSE));
   }
 
   /** Run the feeder at maximum speed */
-  public void fast() {
-    setfeederMode(feederMode.FAST);
-  }
+  public Command fast() { return Commands.run(() -> setfeederMode(feederMode.FAST)); }
 
   /** Trigger based on current draw (beam brake alternative using current detection) */
   public Trigger hasNote() {

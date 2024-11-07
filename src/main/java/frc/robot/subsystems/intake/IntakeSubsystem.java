@@ -2,6 +2,8 @@ package frc.robot.subsystems.intake;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -45,18 +47,18 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   /** Stop the intake */
-  public void stop() {
-    setIntakeMode(IntakeMode.OFF);
+  public Command stop() {
+    return Commands.run(() -> setIntakeMode(IntakeMode.OFF));
   }
 
   /** Run the intake in reverse */
-  public void reverse() {
-    setIntakeMode(IntakeMode.REVERSE);
+  public Command reverse() {
+    return Commands.run(() -> setIntakeMode(IntakeMode.REVERSE));
   }
 
   /** Run the intake at maximum speed */
-  public void fast() {
-    setIntakeMode(IntakeMode.FAST);
+  public Command fast() {
+    return Commands.run(() -> setIntakeMode(IntakeMode.FAST));
   }
 
   /** Trigger based on current draw (beam brake alternative using current detection) */
