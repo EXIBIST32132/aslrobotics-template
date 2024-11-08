@@ -74,6 +74,12 @@ public class SimControllerMap extends CommandXboxController implements DriverMap
     return button(1);
   }
 
+  // TODO add intake button
+  @Override
+  public Trigger intake() {
+    return new Trigger(() -> false);
+  }
+
   // would we need to mutex this through a subsys req if we switch to the maple swerve skeleton?
   @Override
   public Command rumble() {

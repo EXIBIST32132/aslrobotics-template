@@ -13,13 +13,10 @@
 
 package frc.robot;
 
-import static com.pathplanner.lib.auto.NamedCommands.registerCommand;
 import static com.pathplanner.lib.path.PathPlannerPath.fromPathFile;
-import static edu.wpi.first.wpilibj2.command.Commands.startEnd;
 import static frc.robot.Config.Controllers.*;
 import static frc.robot.Config.Subsystems;
-import static frc.robot.Config.Subsystems.DRIVETRAIN_ENABLED;
-import static frc.robot.Config.Subsystems.SHOOTER_ENABLED;
+import static frc.robot.Config.Subsystems.*;
 import static frc.robot.GlobalConstants.FieldMap.Coordinates.AMP;
 import static frc.robot.GlobalConstants.FieldMap.Coordinates.SPEAKER;
 import static frc.robot.GlobalConstants.MODE;
@@ -35,7 +32,6 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Config.Controllers;
@@ -47,7 +43,6 @@ import frc.robot.subsystems.prototypes.Prototypes;
 import frc.robot.subsystems.prototypes.Prototypes.PrototypeMotor;
 import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
-import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.GamePieceVisualizer;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
@@ -120,21 +115,10 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     registerDrivetrain();
-    registerFlywheel();
-
-    operator
-        .pivotToSpeaker()
-        .or(
-            new Trigger(
-                    () ->
-                        drive
-                                .getPose()
-                                .getTranslation()
-                                .getDistance(SPEAKER.getPose().getTranslation())
-                            < Units.feetToMeters(25))
-                .and(driver.alignToSpeaker()))
-        .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOTING))
-            .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
+    registerAiming();
+    registerIntake();
+    registerShooting();
+    superstructure.registerAutoCommands();
 
     driver.testButton().onTrue(driver.rumble().withTimeout(1.0));
 
@@ -218,12 +202,39 @@ public class RobotContainer {
     }
   }
 
-  private void registerFlywheel() {
-    if (SHOOTER_ENABLED && OPERATOR_ENABLED) {
+  private void registerAiming() {
+    if (SHOOTER_ENABLED && PIVOT_ENABLED && OPERATOR_ENABLED) {
+      operator
+          .pivotToSpeaker()
+          .or(
+              new Trigger(
+                      () ->
+                          drive
+                                  .getPose()
+                                  .getTranslation()
+                                  .getDistance(SPEAKER.getPose().getTranslation())
+                              < Units.feetToMeters(25))
+                  .and(driver.alignToSpeaker()))
+          .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.PREP_SHOT))
+          .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
+    }
+  }
+
+  private void registerShooting() {
+    if (SHOOTER_ENABLED && FEEDER_ENABLED && OPERATOR_ENABLED) {
       operator
           .shoot()
-          .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
-                  .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
+          .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
+          .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
+    }
+  }
+
+  private void registerIntake() {
+    if (INTAKE_ENABLED && OPERATOR_ENABLED) {
+      operator
+          .intake()
+          .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.INTAKING))
+          .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
     }
   }
 
