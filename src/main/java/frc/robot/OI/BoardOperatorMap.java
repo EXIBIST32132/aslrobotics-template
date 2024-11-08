@@ -17,4 +17,10 @@ public class BoardOperatorMap extends CommandGenericHID implements OperatorMap {
   public Trigger pivotToSpeaker() {
     return null;
   }
+
+  // TODO: add intake button
+  @Override
+  public Trigger intake() {
+    return null;
+  }
 }

@@ -115,22 +115,10 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     registerDrivetrain();
-    registerFlywheel();
+    registerAiming();
+    registerIntake();
+    registerShooting();
     superstructure.registerAutoCommands();
-
-    operator
-        .pivotToSpeaker()
-        .or(
-            new Trigger(
-                    () ->
-                        drive
-                                .getPose()
-                                .getTranslation()
-                                .getDistance(SPEAKER.getPose().getTranslation())
-                            < Units.feetToMeters(25))
-                .and(driver.alignToSpeaker()))
-        .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOTING))
-        .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
 
     driver.testButton().onTrue(driver.rumble().withTimeout(1.0));
 
@@ -214,11 +202,29 @@ public class RobotContainer {
     }
   }
 
-  private void registerFlywheel() {
-    if (SHOOTER_ENABLED && OPERATOR_ENABLED) {
+  private void registerAiming() {
+    if (SHOOTER_ENABLED && PIVOT_ENABLED && OPERATOR_ENABLED) {
+      operator
+          .pivotToSpeaker()
+          .or(
+              new Trigger(
+                      () ->
+                          drive
+                                  .getPose()
+                                  .getTranslation()
+                                  .getDistance(SPEAKER.getPose().getTranslation())
+                              < Units.feetToMeters(25))
+                  .and(driver.alignToSpeaker()))
+          .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.PREP_SHOT))
+          .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
+    }
+  }
+
+  private void registerShooting() {
+    if (SHOOTER_ENABLED && FEEDER_ENABLED && OPERATOR_ENABLED) {
       operator
           .shoot()
-          .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
+          .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
           .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
     }
   }
@@ -226,8 +232,8 @@ public class RobotContainer {
   private void registerIntake() {
     if (INTAKE_ENABLED && OPERATOR_ENABLED) {
       operator
-          .shoot()
-          .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
+          .intake()
+          .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.INTAKING))
           .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
     }
   }

@@ -28,6 +28,12 @@ public class XboxOperatorMap extends CommandXboxController implements OperatorMa
     return rightBumper();
   }
 
+  // TODO: add intake button
+  @Override
+  public Trigger intake() {
+    return null;
+  }
+
   @Override
   public Command rumble() {
     return startEnd(
