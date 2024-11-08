@@ -6,7 +6,6 @@ import static frc.robot.GlobalConstants.MODE;
 import static frc.robot.subsystems.Superstructure.SuperStates.IDLING;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -35,10 +34,9 @@ import frc.robot.subsystems.pivot.PivotIOSim;
 import frc.robot.subsystems.pivot.PivotSubsystem;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.GamePieceVisualizer;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
-
-import java.util.function.Supplier;
 
 public class Superstructure extends SubsystemBase {
   /**
@@ -70,11 +68,11 @@ public class Superstructure extends SubsystemBase {
           : null;
 
   private final FeederSubsystem feeder =
-          Config.Subsystems.FEEDER_ENABLED
-                  ? (MODE == GlobalConstants.RobotMode.REAL
-                  ? new FeederSubsystem(new FeederIOReal())
-                  : new FeederSubsystem(new FeederIOSim()))
-                  : null;
+      Config.Subsystems.FEEDER_ENABLED
+          ? (MODE == GlobalConstants.RobotMode.REAL
+              ? new FeederSubsystem(new FeederIOReal())
+              : new FeederSubsystem(new FeederIOSim()))
+          : null;
 
   private final ClimberSubsystem climber =
       Config.Subsystems.CLIMBER_ENABLED
@@ -90,28 +88,30 @@ public class Superstructure extends SubsystemBase {
               : new LEDSubsystem(new LEDIOSim()))
           : null;
 
-
   public Superstructure(Supplier<Pose2d> drivePoseSupplier) {
-    registerCommand(
-            "Run Flywheel",
-            startEnd(() -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop)
-                    .withTimeout(5.0));
     this.drivePoseSupplier = drivePoseSupplier;
 
-
-
-    pivot.setDefaultCommand(pivot.run(() -> pivot.setPosition(() -> 0)));
+    if (pivot != null) pivot.setDefaultCommand(pivot.run(() -> pivot.setPosition(() -> 0)));
 
     leds.setDefaultCommand(
-            leds.setRunAlongCmd(
-                    () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,
-                    () -> Color.kBlack,
-                    5,
-                    1));
+        leds.setRunAlongCmd(
+            () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,
+            () -> Color.kBlack,
+            5,
+            1));
   }
 
   private final LoggedDashboardNumber flywheelSpeedInput =
-          new LoggedDashboardNumber("Flywheel Speed", 1500.0);
+      new LoggedDashboardNumber("Flywheel Speed", 1500.0);
+
+  public void registerAutoCommands() {
+    if (flywheel != null) {
+      registerCommand(
+          "Run Flywheel",
+          startEnd(() -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop)
+              .withTimeout(5.0));
+    }
+  }
 
   public static enum SuperStates {
     IDLING,
@@ -141,10 +141,10 @@ public class Superstructure extends SubsystemBase {
   public void periodic() {
     switch (currentState) {
       case IDLING -> {
-        intake.stop();
-        feeder.stop();
-        flywheel.stop();
-        pivot.run(pivot::getDefaultCommand);
+        if (intake != null) intake.stop();
+        if (feeder != null) feeder.stop();
+        if (flywheel != null) flywheel.stop();
+        if (pivot != null) pivot.run(pivot::getDefaultCommand);
       }
       case INTAKING -> {
         intake.fast();
@@ -152,14 +152,20 @@ public class Superstructure extends SubsystemBase {
         intake.hasNote().onTrue(setSuperStateCmd(IDLING));
       }
       case SHOOTING -> {
-        pivot.run(() -> pivot.setPosition(
-                () -> Math.atan2(2.1, drivePoseSupplier.get().
-                        getTranslation().
-                        getDistance(SPEAKER.getPose().getTranslation()))));
+        pivot.run(
+            () ->
+                pivot.setPosition(
+                    () ->
+                        Math.atan2(
+                            2.1,
+                            drivePoseSupplier
+                                .get()
+                                .getTranslation()
+                                .getDistance(SPEAKER.getPose().getTranslation()))));
         flywheel.runVelocityCmd(flywheelSpeedInput.get());
       }
-      case SHOOT ->  {
-        //add feeder
+      case SHOOT -> {
+        // add feeder
         GamePieceVisualizer.shoot(() -> 0.5, pivot::getPosition);
       }
     }
@@ -169,20 +175,34 @@ public class Superstructure extends SubsystemBase {
     return leds.setBlinkingCmd(onColor, offColor, frequency);
   }
 
-  public Trigger shooterVelocityGreater() { return new Trigger(() -> flywheel.getVelocityRPM() > 1200); }
-
-  public void registerSuperstructureCharacterization(Supplier<LoggedDashboardChooser<Command>> autoChooser) {
-    // Set up SysId routines for all subsystems
-    autoChooser.get().addOption(
-            "Flywheel SysId (Quasistatic Forward)",
-            flywheel.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.get().addOption(
-            "Flywheel SysId (Quasistatic Reverse)",
-            flywheel.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.get().addOption(
-            "Flywheel SysId (Dynamic Forward)", flywheel.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.get().addOption(
-            "Flywheel SysId (Dynamic Reverse)", flywheel.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+  public Trigger shooterVelocityGreater() {
+    return new Trigger(() -> flywheel.getVelocityRPM() > 1200);
   }
 
+  public void registerSuperstructureCharacterization(
+      Supplier<LoggedDashboardChooser<Command>> autoChooser) {
+    // Set up SysId routines for all subsystems
+    if (flywheel != null) {
+      autoChooser
+          .get()
+          .addOption(
+              "Flywheel SysId (Quasistatic Forward)",
+              flywheel.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+      autoChooser
+          .get()
+          .addOption(
+              "Flywheel SysId (Quasistatic Reverse)",
+              flywheel.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+      autoChooser
+          .get()
+          .addOption(
+              "Flywheel SysId (Dynamic Forward)",
+              flywheel.sysIdDynamic(SysIdRoutine.Direction.kForward));
+      autoChooser
+          .get()
+          .addOption(
+              "Flywheel SysId (Dynamic Reverse)",
+              flywheel.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    }
+  }
 }
