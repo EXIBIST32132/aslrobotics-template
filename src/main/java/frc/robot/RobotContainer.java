@@ -14,8 +14,8 @@
 package frc.robot;
 
 import static com.pathplanner.lib.path.PathPlannerPath.fromPathFile;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Config.Controllers.*;
-import static frc.robot.Config.Subsystems;
 import static frc.robot.Config.Subsystems.*;
 import static frc.robot.GlobalConstants.FieldMap.Coordinates.AMP;
 import static frc.robot.GlobalConstants.FieldMap.Coordinates.SPEAKER;
@@ -24,10 +24,7 @@ import static frc.robot.GlobalConstants.RobotMode;
 import static frc.robot.subsystems.swerve.SwerveSubsystem.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -35,13 +32,10 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Config.Controllers;
 import frc.robot.OI.DriverMap;
 import frc.robot.OI.OperatorMap;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.Superstructure;
-import frc.robot.subsystems.prototypes.Prototypes;
-import frc.robot.subsystems.prototypes.Prototypes.PrototypeMotor;
 import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.util.GamePieceVisualizer;
@@ -66,15 +60,11 @@ public class RobotContainer {
 
   private final Superstructure superstructure = new Superstructure(Pose2d::new);
 
-  private final Prototypes prototypes =
-      Subsystems.PROTOTYPES_ENABLED ? new Prototypes(new PrototypeMotor(1, "Motor 1")) : null;
-
   // Driver controller
-  private final DriverMap driver = Controllers.DRIVER_ENALBED ? getDriverController() : null;
+  private final DriverMap driver = getDriverController();
 
   // Operator controller
-  private final OperatorMap operator =
-      Controllers.OPERATOR_ENABLED ? getOperatorController() : null;
+  private final OperatorMap operator = getOperatorController();
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -102,6 +92,16 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
+    GamePieceVisualizer.setRobotPoseSupplier(drive::getPose);
+    GamePieceVisualizer.setTargetSupplier(
+        () ->
+            new Pose3d(
+                new Translation3d(
+                    SPEAKER.getPose().getTranslation().getX(),
+                    SPEAKER.getPose().getTranslation().getY(),
+                    2.1),
+                new Rotation3d()));
+
     // registerCharacterization();
 
     // Configure the button bindings
@@ -116,29 +116,13 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     registerDrivetrain();
-    // registerAiming();
-    // registerIntake();
-    // registerShooting();
+    registerAiming();
+    registerIntake();
+    registerShooting();
     superstructure.registerAutoCommands();
-
-    driver.testButton().onTrue(driver.rumble().withTimeout(1.0));
 
     new Trigger(() -> Math.abs(drive.getNoteOffset()) < 5 && drive.getNoteOffset() != 0)
         .whileTrue(superstructure.setLEDBlinkingCmd(Color.kYellow, Color.kBlack, 5));
-
-    GamePieceVisualizer.setRobotPoseSupplier(drive::getPose);
-    GamePieceVisualizer.setTargetSupplier(
-        () ->
-            new Pose3d(
-                new Translation3d(
-                    SPEAKER.getPose().getTranslation().getX(),
-                    SPEAKER.getPose().getTranslation().getY(),
-                    2.1),
-                new Rotation3d()));
-    operator
-        .shoot()
-        .and(superstructure.shooterVelocityGreater())
-        .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
   }
 
   private void registerDrivetrain() {
@@ -147,45 +131,23 @@ public class RobotContainer {
           DriveCommands.joystickDrive(
               drive, driver.getXAxis(), driver.getYAxis(), driver.getRotAxis()));
 
-      /*driver
-          //          .start()
-          .leftBumper()
-          .whileTrue(
-              DriveCommands.manualOverrideAutoDrive(
-                  drive,
-                  () -> -driver.getLeftY(),
-                  () -> -driver.getLeftX(),
-                  () -> -driver.getRightX(),
-                  "Speaker"));
-      driver
-          //          .back()
-          .rightBumper()
-          .whileTrue(
-              DriveCommands.manualOverrideAutoDrive(
-                  drive,
-                  () -> -driver.getLeftY(),
-                  () -> -driver.getLeftX(),
-                  () -> -driver.getRightX(),
-                  "Source"));*/
-      //      driver.rightBumper().whileTrue(drive.followPathCommand(() -> fromPathFile("Example
-      // Path")));
-
       driver
           .alignToSpeaker()
           .whileTrue(
               DriveCommands.orbitWithDynamicTolerance(
                   drive, driver.getXAxis(), driver.getYAxis(), SPEAKER::getPose));
 
-      //      driver.x().onTrue(runOnce(drive::stopWithX, drive));
-      //      driver
-      //        .b()
-      //        .onTrue(
-      //          runOnce(
-      //            () ->
-      //              drive.setPose(
-      //                new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-      //            drive)
-      //            .ignoringDisable(true));
+      driver.stopWithX().onTrue(runOnce(drive::stopWithX, drive));
+
+      driver
+          .resetOdometry()
+          .onTrue(
+              runOnce(
+                      () ->
+                          drive.setPose(
+                              new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                      drive)
+                  .ignoringDisable(true));
 
       new Trigger(
               () ->
@@ -223,10 +185,16 @@ public class RobotContainer {
 
   private void registerShooting() {
     if (SHOOTER_ENABLED && FEEDER_ENABLED && OPERATOR_ENABLED) {
+      // figure out what's going on here
       operator
           .shoot()
           .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
           .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
+
+      operator
+          .shoot()
+          .and(superstructure.shooterVelocityGreater())
+          .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
     }
   }
 
