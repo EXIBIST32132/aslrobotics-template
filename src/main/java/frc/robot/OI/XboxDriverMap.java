@@ -49,13 +49,8 @@ public class XboxDriverMap extends CommandXboxController implements DriverMap {
   }
 
   @Override
-  public Trigger pathToSource() {
-    return y();
-  }
-
-  @Override
-  public Trigger pathToSpeaker() {
-    return b();
+  public Trigger resetOdometry() {
+    return back();
   }
 
   @Override

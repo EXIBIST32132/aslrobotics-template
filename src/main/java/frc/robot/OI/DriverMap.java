@@ -19,9 +19,7 @@ public interface DriverMap {
 
   Trigger pathToAmp();
 
-  Trigger pathToSource();
-
-  Trigger pathToSpeaker();
+  Trigger resetOdometry();
 
   Trigger stopWithX();
 

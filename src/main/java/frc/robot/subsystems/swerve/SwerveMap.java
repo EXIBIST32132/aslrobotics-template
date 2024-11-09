@@ -6,6 +6,8 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 
 public final class SwerveMap {
+  public static final int PIGEON_ID = 30;
+
   public static final class GyroMap {
 
     public static enum GyroType {

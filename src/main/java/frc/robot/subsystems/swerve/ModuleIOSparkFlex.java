@@ -58,7 +58,7 @@ public class ModuleIOSparkFlex implements ModuleIO {
     name = sparkModuleConstants.name();
 
     driveSparkMax = new CANSparkFlex(sparkModuleConstants.driveID(), MotorType.kBrushless);
-    turnSparkMax = new CANSparkMax(sparkModuleConstants.driveID(), MotorType.kBrushless);
+    turnSparkMax = new CANSparkMax(sparkModuleConstants.rotatorID(), MotorType.kBrushless);
 
     driveSparkMax.restoreFactoryDefaults();
     turnSparkMax.restoreFactoryDefaults();

@@ -27,27 +27,31 @@ public final class Config {
 
     public static final boolean OPERATOR_ENABLED = true;
     public static final int OPERATOR_PORT = 1;
-    public static final boolean JOYSTICK_OPERATOR_ENABLED = true && OPERATOR_ENABLED;
-    public static final boolean BOARD_OPERATOR_ENABLED =
-        !JOYSTICK_OPERATOR_ENABLED && OPERATOR_ENABLED;
+    public static final boolean JOYSTICK_OPERATOR_ENABLED = true;
+    public static final boolean BOARD_OPERATOR_ENABLED = !JOYSTICK_OPERATOR_ENABLED;
 
     public static DriverMap getDriverController() {
-      return new SimControllerMap(DRIVER_PORT);
+      return DRIVER_ENALBED
+          ? switch (ROBOT) {
+            case COMPBOT -> new XboxDriverMap(DRIVER_PORT);
+            case DEVBOT -> new XboxDriverMap(DRIVER_PORT);
+            case SIMBOT -> new SimXboxUniversalMap(DRIVER_PORT);
+          }
+          : null;
     }
 
     public static OperatorMap getOperatorController() {
-      // return BOARD_OPERATOR_ENABLED
-      //   ? new CommandBoardControllerSubsystem(OPERATOR_PORT)
-      //   : new CommandXboxControllerSubsystem(OPERATOR_PORT);
-      return switch (ROBOT) {
-        case COMPBOT -> JOYSTICK_OPERATOR_ENABLED
-            ? new XboxOperatorMap(OPERATOR_PORT)
-            : new BoardOperatorMap(OPERATOR_PORT);
-        case DEVBOT -> JOYSTICK_OPERATOR_ENABLED
-            ? new XboxOperatorMap(OPERATOR_PORT)
-            : new BoardOperatorMap(OPERATOR_PORT);
-        case SIMBOT -> new SimControllerMap(OPERATOR_PORT);
-      };
+      return OPERATOR_ENABLED
+          ? switch (ROBOT) {
+            case COMPBOT -> JOYSTICK_OPERATOR_ENABLED
+                ? new XboxOperatorMap(OPERATOR_PORT)
+                : new BoardOperatorMap(OPERATOR_PORT);
+            case DEVBOT -> JOYSTICK_OPERATOR_ENABLED
+                ? new XboxOperatorMap(OPERATOR_PORT)
+                : new BoardOperatorMap(OPERATOR_PORT);
+            case SIMBOT -> new SimXboxUniversalMap(OPERATOR_PORT);
+          }
+          : null;
     }
   }
 }
