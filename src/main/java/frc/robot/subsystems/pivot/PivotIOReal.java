@@ -1,30 +1,47 @@
 package frc.robot.subsystems.pivot;
 
+import static frc.robot.subsystems.pivot.PivotMap.Hardware.*;
+
 import com.revrobotics.*;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
 public class PivotIOReal implements PivotIO {
-  private final CANSparkMax pivot =
-      new CANSparkMax(PivotMap.LEFT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless);
-  private final RelativeEncoder encoder = pivot.getEncoder();
-  private final SparkPIDController pid = pivot.getPIDController();
+  private final CANSparkMax
+      leader = new CANSparkMax(LEFT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless),
+      follower = new CANSparkMax(RIGHT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless);
+  private final RelativeEncoder encoder = leader.getEncoder();
+  private final DutyCycleEncoder absEncoder = new DutyCycleEncoder(ENCODER_PORT);
+  private final SparkPIDController pid = leader.getPIDController();
 
   public PivotIOReal() {
-    pivot.restoreFactoryDefaults();
+    leader.restoreFactoryDefaults();
+    follower.restoreFactoryDefaults();
 
-    pivot.setCANTimeout(250);
+    leader.setCANTimeout(250);
+    follower.setCANTimeout(250);
 
-    pivot.setInverted(false);
+    leader.setInverted(false);
+    follower.follow(leader, true);
 
-    pivot.enableVoltageCompensation(12.0);
-    pivot.setSmartCurrentLimit(30);
+    leader.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    follower.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
-    pivot.burnFlash();
+    leader.enableVoltageCompensation(12.0);
+    follower.enableVoltageCompensation(12.0);
+
+    leader.setSmartCurrentLimit(60);
+    follower.setSmartCurrentLimit(60);
+
+    leader.burnFlash();
+    follower.burnFlash();
   }
 
   @Override
   public void updateInputs(PivotIO.PivotIOInputs inputs) {
-    //    inputs.climberLeftPositionMeters =    TODO: Make inputs
-    //    inputs.climberRightPositionMeters =
+    inputs.leaderAppliedVolts = leader.getBusVoltage();
+    inputs.leaderCurrentAmps = leader.getOutputCurrent();
+    inputs.leaderPositionRad = absEncoder.getAbsolutePosition();
+    inputs.leaderVelocityRadPerSec = encoder.getVelocity();
   }
 
   @Override
@@ -39,10 +56,10 @@ public class PivotIOReal implements PivotIO {
 
   @Override
   public void setVoltage(double volts) {
-    pivot.setVoltage(volts);
+    leader.setVoltage(volts);
   }
 
-  public void setHoming(boolean homingBool) {} // TODO: Figure out wtf is set Homing
+  public void setHoming(boolean homingBool) {}
 
   @Override
   public void configurePID(double kP, double kI, double kD) {

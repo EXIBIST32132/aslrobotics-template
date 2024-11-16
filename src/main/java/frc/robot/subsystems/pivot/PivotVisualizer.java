@@ -12,8 +12,8 @@ public class PivotVisualizer {
     this.name = name;
   }
 
-  public void update(double angle) {
-    Pose3d pivot = new Pose3d(-0.25, 0, 0.155, new Rotation3d(0, -angle, 0));
+  public void update(double angleRads) {
+    Pose3d pivot = new Pose3d(-0.25, 0, 0.155, new Rotation3d(0, -angleRads, 0));
     Logger.recordOutput("Pivot/" + name, pivot);
   }
 }

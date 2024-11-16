@@ -3,12 +3,22 @@ package frc.robot.subsystems.pivot;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface PivotIO {
+  // let's only log the controller inputs for the leader
   @AutoLog
   public static class PivotIOInputs {
-    public double pivotPositionRad = 0.0;
-    public double pivotVelocityRadPerSec = 0.0;
-    public double pivotAppliedVolts = 0.0;
-    public double[] pivotCurrentAmps = new double[] {};
+    public boolean leaderConnected = true;
+    public boolean followerConnected = true;
+
+    public double leaderPositionRad = 0.0;
+    public double leaderTargetPositionRad = 0.0;
+    public double encoderPositionRad = 0.0;
+
+    public double leaderVelocityRadPerSec = 0.0;
+    public double leaderAppliedVolts = 0.0;
+    public double leaderCurrentAmps = 0.0;
+
+    public double followerPositionRad = 0.0;
+    public double followerVelocityRadPerSec = 0.0;
   }
 
   /** Updates the set of loggable inputs. */
