@@ -16,7 +16,7 @@ public class PivotSubsystem extends SubsystemBase {
   public PivotSubsystem(PivotIO io) {
     this.io = io;
     ffModel = new ArmFeedforward(0, 0.83, 0.5);
-    io.configurePID(5, 0, 0.125);
+    io.configurePID(1.5, 3, 0.075);
 
     actualVisualizer = new PivotVisualizer("ActualVisualizer");
     targetVisualizer = new PivotVisualizer("TargetVisualizer");

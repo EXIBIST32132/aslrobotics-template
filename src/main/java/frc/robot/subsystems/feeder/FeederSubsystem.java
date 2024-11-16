@@ -31,7 +31,7 @@ public class FeederSubsystem extends SubsystemBase {
 
   public FeederSubsystem(FeederIO io) {
     this.io = io;
-    this.io.configurePID(1, 1, 1); // TODO: find PID Values
+    this.io.configurePID(0.00036, 0, 0.015);
   }
 
   @Override

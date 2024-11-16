@@ -14,26 +14,26 @@ public final class SwerveMap {
       ADIS,
     }
 
-    public static final GyroType GYRO_TYPE = GyroType.PIGEON;
+    public static final GyroType GYRO_TYPE = GyroType.NAVX;
 
     public static final int PIGEON_ID = 30;
   }
 
-  public static final int FRD_ID = 6;
+  public static final int FRD_ID = 42;
   public static final int FRR_ID = 5;
-  public static final int FLD_ID = 2;
+  public static final int FLD_ID = 41;
   public static final int FLR_ID = 1;
 
-  public static final int BRD_ID = 8;
+  public static final int BRD_ID = 43;
   public static final int BRR_ID = 7;
-  public static final int BLD_ID = 4;
+  public static final int BLD_ID = 40;
   public static final int BLR_ID = 3;
 
   static final double ODOMETRY_FREQUENCY = 250.0;
 
   // TODO refactor into separate constants files in swerve
   public static final boolean USING_TALON_DRIVE = false; // change to using kraken FOC?
-  public static final boolean USING_VORTEX_DRIVE = false && !USING_TALON_DRIVE;
+  public static final boolean USING_VORTEX_DRIVE = true && !USING_TALON_DRIVE;
 
   public static final double TRACK_WIDTH = Units.inchesToMeters(23.5);
   public static final double WHEEL_BASE = Units.inchesToMeters(23.5);
@@ -61,7 +61,7 @@ public final class SwerveMap {
               : DCMotor.getNEO(1).getTorque(DRIVE_MOTOR_CURRENT_LIMIT));
 
   public static final double DRIVE_GEAR_RATIO =
-      USING_TALON_DRIVE ? (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0) : 4.71;
+      USING_TALON_DRIVE ? (50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0) : 4.0;
   public static final double TURN_GEAR_RATIO = USING_TALON_DRIVE ? 150.0 / 7.0 : 9424.0 / 203.0;
 
   public static final double MAX_LINEAR_ACCELERATION =

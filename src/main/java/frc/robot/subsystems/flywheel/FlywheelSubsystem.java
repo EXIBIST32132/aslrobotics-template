@@ -29,9 +29,9 @@ public class FlywheelSubsystem extends SubsystemBase {
 
   public enum Velocity {
     OFF(0),
-    SLOW(200),
-    MEDIUM(500),
-    FAST(900);
+    SLOW(1000),
+    MEDIUM(2500),
+    FAST(4000);
 
     final double velocity;
 
@@ -62,7 +62,8 @@ public class FlywheelSubsystem extends SubsystemBase {
         io.configurePID(0.5, 0.0, 0.0);
         break;
       default:
-        ffModel = new SimpleMotorFeedforward(0.0, 0.0);
+        ffModel = new SimpleMotorFeedforward(0.0, 0.00015);
+        io.configurePID(0.00036, 0.0, 0.015);
         break;
     }
 
