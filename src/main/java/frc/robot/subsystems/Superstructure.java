@@ -33,7 +33,6 @@ import frc.robot.subsystems.pivot.PivotIOReal;
 import frc.robot.subsystems.pivot.PivotIOSim;
 import frc.robot.subsystems.pivot.PivotSubsystem;
 import frc.robot.util.AllianceFlipUtil;
-import frc.robot.util.GamePieceVisualizer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
@@ -143,8 +142,8 @@ public class Superstructure extends SubsystemBase {
       case IDLING -> {
         if (intake != null) intake.stop();
         if (feeder != null) feeder.stop();
-        if (flywheel != null) flywheel.stop();
-        if (pivot != null) pivot.run(pivot::getDefaultCommand);
+        if (flywheel != null) flywheel.runVelocity(0);
+        if (pivot != null) pivot.stop();
       }
       case INTAKING -> {
         intake.fast();
@@ -166,7 +165,8 @@ public class Superstructure extends SubsystemBase {
       }
       case SHOOT -> {
         // add feeder
-        GamePieceVisualizer.shoot(() -> 0.5, pivot::getPosition);
+        flywheel.runVelocity(1000);
+        // GamePieceVisualizer.shoot(() -> 0.5, pivot::getPosition);
       }
     }
   }

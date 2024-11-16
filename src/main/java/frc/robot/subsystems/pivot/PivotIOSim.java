@@ -10,7 +10,14 @@ public class PivotIOSim implements PivotIO {
 
   private SingleJointedArmSim sim =
       new SingleJointedArmSim(
-          DCMotor.getKrakenX60(2), 30, 1, 0.5, 0, Units.degreesToRadians(110), true, 0);
+          DCMotor.getNeoVortex(2),
+          (10 / Units.metersToInches(0.012) / 0.5),
+          1,
+          0.3126232,
+          0,
+          Units.degreesToRadians(110),
+          true,
+          0);
 
   private PIDController pid = new PIDController(0.0, 0.0, 0.0);
 
@@ -19,18 +26,17 @@ public class PivotIOSim implements PivotIO {
   private double appliedVolts = 0.0;
 
   @Override
-  public void updateInputs(
-      PivotIOInputs inputs) { // TODO: figure out why it is PivotIOAutoLogged, and not PivotIOInputs
+  public void updateInputs(PivotIOInputs inputs) {
     if (closedLoop) {
       appliedVolts = MathUtil.clamp(pid.calculate(sim.getAngleRads()) + ffVolts, -12.0, 12.0);
       sim.setInputVoltage(appliedVolts);
     }
     sim.update(0.02);
 
-    inputs.pivotPositionRad = sim.getAngleRads();
-    inputs.pivotVelocityRadPerSec = sim.getVelocityRadPerSec();
-    inputs.pivotAppliedVolts = appliedVolts;
-    inputs.pivotCurrentAmps = new double[] {sim.getCurrentDrawAmps()};
+    inputs.leaderPositionRad = sim.getAngleRads();
+    inputs.leaderVelocityRadPerSec = sim.getVelocityRadPerSec();
+    inputs.leaderAppliedVolts = appliedVolts;
+    inputs.leaderCurrentAmps = sim.getCurrentDrawAmps();
   }
 
   @Override

@@ -130,10 +130,7 @@ public class ModuleIOSparkFlex implements ModuleIO {
     inputs.driveCurrentAmps = new double[] {driveSparkFlex.getOutputCurrent()};
 
     inputs.turnAbsolutePosition =
-        new Rotation2d(
-                turnAbsoluteEncoder.getPosition()
-                    / /*RobotController.getVoltage5V() **/ 2.0
-                    * Math.PI)
+        new Rotation2d(turnAbsoluteEncoder.getPosition() * 2.0 * Math.PI)
             .minus(absoluteEncoderOffset);
     inputs.turnPosition =
         Rotation2d.fromRotations(turnRelativeEncoder.getPosition() / TURN_GEAR_RATIO);

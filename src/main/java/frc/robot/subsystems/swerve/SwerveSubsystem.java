@@ -102,13 +102,13 @@ public class SwerveSubsystem extends SubsystemBase {
 
   // add the CANCoder id between the rotator id and offset params
   private static final ModuleConstants frontLeft =
-      new ModuleConstants("Front Left", FLD_ID, FLR_ID, Rotation2d.fromRadians(0));
+      new ModuleConstants("Front Left", FLD_ID, FLR_ID, Rotation2d.fromRadians(PI / 2));
   private static final ModuleConstants frontRight =
       new ModuleConstants("Front Right", FRD_ID, FRR_ID, Rotation2d.fromRadians(0));
   private static final ModuleConstants backLeft =
-      new ModuleConstants("Back Left", BLD_ID, BLR_ID, Rotation2d.fromRadians(0));
+      new ModuleConstants("Back Left", BLD_ID, BLR_ID, Rotation2d.fromRadians(PI));
   private static final ModuleConstants backRight =
-      new ModuleConstants("Back Right", BRD_ID, BRR_ID, Rotation2d.fromRadians(0));
+      new ModuleConstants("Back Right", BRD_ID, BRR_ID, Rotation2d.fromRadians(-PI / 2));
 
   protected final SysIdRoutine sysId;
 
@@ -481,10 +481,10 @@ public class SwerveSubsystem extends SubsystemBase {
   /** Returns an array of module translations. */
   public static Translation2d[] getModuleTranslations() {
     return new Translation2d[] {
-      new Translation2d(TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0),
       new Translation2d(TRACK_WIDTH / 2.0, -WHEEL_BASE / 2.0),
-      new Translation2d(-TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0),
+      new Translation2d(TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0),
       new Translation2d(-TRACK_WIDTH / 2.0, -WHEEL_BASE / 2.0),
+      new Translation2d(-TRACK_WIDTH / 2.0, WHEEL_BASE / 2.0),
     };
   }
 

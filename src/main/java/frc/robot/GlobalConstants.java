@@ -33,6 +33,8 @@ public final class GlobalConstants {
   public static final RobotMode MODE = RobotMode.REAL;
   public static final RobotType ROBOT = RobotType.COMPBOT;
 
+  public static boolean tuningMode = true;
+
   public static enum RobotMode {
     /** Running on a real robot. */
     REAL,
