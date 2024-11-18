@@ -89,15 +89,6 @@ public class Superstructure extends SubsystemBase {
 
   public Superstructure(Supplier<Pose2d> drivePoseSupplier) {
     this.drivePoseSupplier = drivePoseSupplier;
-
-    if (pivot != null) pivot.setDefaultCommand(pivot.run(() -> pivot.setPosition(() -> 0)));
-
-    leds.setDefaultCommand(
-        leds.setRunAlongCmd(
-            () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,
-            () -> Color.kBlack,
-            5,
-            1));
   }
 
   private final LoggedDashboardNumber flywheelSpeedInput =
@@ -144,11 +135,17 @@ public class Superstructure extends SubsystemBase {
         if (feeder != null) feeder.stop();
         if (flywheel != null) flywheel.runVelocity(0);
         if (pivot != null) pivot.stop();
+        if (leds != null)leds.setRunAlongCmd(
+                () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,
+                () -> Color.kBlack,
+                5,
+                1);
       }
       case INTAKING -> {
-        intake.fast();
-        feeder.fast();
-        intake.hasNote().onTrue(setSuperStateCmd(IDLING));
+        if(intake != null && feeder != null) intake.hasNote().onFalse(Commands.runOnce(()->{
+          intake.fast();
+          feeder.runVolt(12);
+        })).onTrue(setSuperStateCmd(IDLING));
       }
       case PREP_SHOT -> {
         pivot.run(
@@ -162,17 +159,18 @@ public class Superstructure extends SubsystemBase {
                                 .getTranslation()
                                 .getDistance(SPEAKER.getPose().getTranslation()))));
         flywheel.runVelocityCmd(flywheelSpeedInput.get());
+        feeder.hasNote().onFalse(feeder.runCMD(flywheelSpeedInput.get())).onTrue(feeder.stop());
       }
       case SHOOT -> {
         // add feeder
         flywheel.runVelocity(1000);
-        // GamePieceVisualizer.shoot(() -> 0.5, pivot::getPosition);
+        feeder.runCMD(1000);
       }
     }
   }
 
   public Command setLEDBlinkingCmd(Color onColor, Color offColor, double frequency) {
-    return leds.setBlinkingCmd(onColor, offColor, frequency);
+    if(leds !=null)return leds.setBlinkingCmd(onColor, offColor, frequency); else return null;
   }
 
   public Trigger shooterVelocityGreater() {

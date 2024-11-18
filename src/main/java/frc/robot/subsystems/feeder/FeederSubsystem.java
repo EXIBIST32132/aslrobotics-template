@@ -33,6 +33,10 @@ public class FeederSubsystem extends SubsystemBase {
   public Command runCMD(double vel) {
     return Commands.runOnce(() -> io.setVelocity(vel, 0));
   }
+
+  public Command runVolt(double volt){
+    return Commands.runOnce(()-> io.setVoltage(volt));
+  }
   /** Trigger based on current draw (beam brake alternative using current detection) */
   public Trigger hasNote() {
     return new Trigger(io::hasNote); // TODO: Find port of beam break and set hasNote return type to actually return when broken

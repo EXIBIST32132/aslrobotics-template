@@ -63,11 +63,6 @@ public class IntakeSubsystem extends SubsystemBase {
 
   /** Trigger based on current draw (beam brake alternative using current detection) */
   public Trigger hasNote() {
-    return new Trigger(
-        () ->
-            this.currentState == IntakeMode.FAST // Detect only while intake is running forward
-                && currentDebouncer.calculate(
-                    inputs.intakeCurrentAmps > 40) // Debounced current detection
-        );
+    return new Trigger(io::hasNote); // TODO: Find port of beam break and set hasNote return type to actually return when broken
   }
 }

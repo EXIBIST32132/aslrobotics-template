@@ -2,16 +2,14 @@ package frc.robot.subsystems.feeder;
 
 import com.revrobotics.*;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.wpilibj.DigitalInput;
 
 public class FeederIOReal implements FeederIO {
   private final CANSparkMax feeder =
       new CANSparkMax(FeederMap.FEEDER_ID, CANSparkLowLevel.MotorType.kBrushless);
   private final RelativeEncoder encoder = feeder.getEncoder();
   private final SparkPIDController pid = feeder.getPIDController();
-
-  // Debouncer to filter out noise or temporary spikes in current
-  private final Debouncer currentDebouncer =
-          new Debouncer(0.2, Debouncer.DebounceType.kRising); // 200ms debounce
+  private final DigitalInput beamBrake = new DigitalInput(1);
 
   @Override
   public void updateInputs(FeederIO.FeederIOInputs inputs) {
@@ -32,11 +30,8 @@ public class FeederIOReal implements FeederIO {
         ffVolts,
         SparkPIDController.ArbFFUnits.kVoltage);
   }
-
   public boolean hasNote(){
-    return currentDebouncer.calculate(
-            feeder.getOutputCurrent()
-                    >50);
+    return beamBrake.get();
   }
 
   @Override
