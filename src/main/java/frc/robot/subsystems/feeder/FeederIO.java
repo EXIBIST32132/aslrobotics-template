@@ -17,5 +17,7 @@ public interface FeederIO {
 
   public void setVelocity(double radiansPerSecond, double ffVolts);
 
+  public boolean hasNote();
+
   public void configurePID(double kP, double kI, double kD);
 }

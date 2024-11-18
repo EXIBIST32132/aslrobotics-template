@@ -11,5 +11,8 @@ public class FeederIOSim implements FeederIO {
   public void setVelocity(double radiansPerSecond, double ffVolts) {}
 
   @Override
+  public boolean hasNote() {return false;}
+
+  @Override
   public void configurePID(double kP, double kI, double kD) {}
 }
