@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="frc.robot.subsystems.vision.AprilTagVisionTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-11-08T17:36:17" hostname="SL-24397" time="0.013">
+<testsuite name="frc.robot.subsystems.vision.AprilTagVisionTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-11-16T16:21:40" hostname="SL-24397" time="0.035">
   <properties/>
-  <testcase name="deviationsTest()" classname="frc.robot.subsystems.vision.AprilTagVisionTest" time="0.013"/>
+  <testcase name="deviationsTest()" classname="frc.robot.subsystems.vision.AprilTagVisionTest" time="0.035"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

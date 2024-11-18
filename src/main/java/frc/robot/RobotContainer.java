@@ -189,12 +189,16 @@ public class RobotContainer {
       operator
           .shoot()
           .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
-          .onFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
+          .whileFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
 
-      operator
-          .shoot()
-          .and(superstructure.shooterVelocityGreater())
-          .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
+      //   operator
+      //       .shoot()
+      //       .and(superstructure.shooterVelocityGreater())
+      //       .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
+
+      //   operator
+      //       .pivotToSpeaker()
+      //       .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
     }
   }
 

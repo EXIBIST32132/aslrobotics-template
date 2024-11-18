@@ -6,9 +6,9 @@ import com.revrobotics.*;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
 public class PivotIOReal implements PivotIO {
-  private final CANSparkMax
-      leader = new CANSparkMax(LEFT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless),
-      follower = new CANSparkMax(RIGHT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless);
+  private final CANSparkFlex
+      leader = new CANSparkFlex(LEFT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless),
+      follower = new CANSparkFlex(RIGHT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless);
   private final RelativeEncoder encoder = leader.getEncoder();
   private final DutyCycleEncoder absEncoder = new DutyCycleEncoder(ENCODER_PORT);
   private final SparkPIDController pid = leader.getPIDController();
@@ -68,5 +68,11 @@ public class PivotIOReal implements PivotIO {
     pid.setI(kI, 0);
     pid.setD(kD, 0);
     pid.setFF(0, 0);
+  }
+
+  @Override
+  public void stop() {
+    leader.setVoltage(0);
+    follower.setVoltage(0);
   }
 }

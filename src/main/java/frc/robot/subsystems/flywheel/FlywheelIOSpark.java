@@ -16,8 +16,9 @@ package frc.robot.subsystems.flywheel;
 import static frc.robot.subsystems.flywheel.FlywheelMap.GEAR_RATIO;
 
 import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
@@ -27,10 +28,10 @@ import edu.wpi.first.math.util.Units;
 // "CANSparkFlex"
 public class FlywheelIOSpark implements FlywheelIO {
 
-  private final CANSparkMax leader =
-      new CANSparkMax(FlywheelMap.TOP_FLYWHEEL, MotorType.kBrushless);
-  private final CANSparkMax follower =
-      new CANSparkMax(FlywheelMap.BOTTOM_FLYWHEEL, MotorType.kBrushless);
+  private final CANSparkFlex leader =
+      new CANSparkFlex(FlywheelMap.TOP_FLYWHEEL, MotorType.kBrushless);
+  private final CANSparkFlex follower =
+      new CANSparkFlex(FlywheelMap.BOTTOM_FLYWHEEL, MotorType.kBrushless);
   private final RelativeEncoder encoder = leader.getEncoder();
   private final SparkPIDController pid = leader.getPIDController();
 
@@ -42,10 +43,15 @@ public class FlywheelIOSpark implements FlywheelIO {
     follower.setCANTimeout(250);
 
     leader.setInverted(false);
-    follower.follow(leader, false);
+    follower.follow(leader, true);
 
     leader.enableVoltageCompensation(12.0);
     leader.setSmartCurrentLimit(30);
+    follower.enableVoltageCompensation(12.0);
+    follower.setSmartCurrentLimit(30);
+
+    leader.setIdleMode(IdleMode.kCoast);
+    follower.setIdleMode(IdleMode.kCoast);
 
     leader.burnFlash();
     follower.burnFlash();
