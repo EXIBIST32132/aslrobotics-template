@@ -8,11 +8,12 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public interface OperatorMap {
   Trigger shoot();
 
-  Trigger pivotToSpeaker();
 
   default Command rumble() {
     return none();
   }
+
+  Trigger prepShot();
 
   Trigger intake();
 }

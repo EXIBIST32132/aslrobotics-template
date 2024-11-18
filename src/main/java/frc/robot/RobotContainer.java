@@ -121,7 +121,7 @@ public class RobotContainer {
     registerShooting();
     superstructure.registerAutoCommands();
 
-    new Trigger(() -> Math.abs(drive.getNoteOffset()) < 5 && drive.getNoteOffset() != 0)
+    if(drive != null) new Trigger(() -> Math.abs(drive.getNoteOffset()) < 5 && drive.getNoteOffset() != 0)
         .whileTrue(superstructure.setLEDBlinkingCmd(Color.kYellow, Color.kBlack, 5));
   }
 
@@ -168,7 +168,7 @@ public class RobotContainer {
   private void registerAiming() {
     if (SHOOTER_ENABLED && PIVOT_ENABLED && OPERATOR_ENABLED) {
       operator
-          .pivotToSpeaker()
+          .prepShot()
           .or(
               new Trigger(
                       () ->
@@ -190,15 +190,6 @@ public class RobotContainer {
           .shoot()
           .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
           .whileFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
-
-      //   operator
-      //       .shoot()
-      //       .and(superstructure.shooterVelocityGreater())
-      //       .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
-
-      //   operator
-      //       .pivotToSpeaker()
-      //       .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
     }
   }
 

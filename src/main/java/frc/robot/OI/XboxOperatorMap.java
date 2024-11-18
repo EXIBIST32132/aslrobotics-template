@@ -23,11 +23,6 @@ public class XboxOperatorMap extends CommandXboxController implements OperatorMa
     return b();
   }
 
-  @Override
-  public Trigger pivotToSpeaker() {
-    return rightBumper();
-  }
-
   // TODO: add intake button
   @Override
   public Trigger intake() {
@@ -38,5 +33,10 @@ public class XboxOperatorMap extends CommandXboxController implements OperatorMa
   public Command rumble() {
     return startEnd(
         () -> getHID().setRumble(kBothRumble, 1), () -> getHID().setRumble(kBothRumble, 0));
+  }
+
+  @Override
+  public Trigger prepShot() {
+    return a();
   }
 }
