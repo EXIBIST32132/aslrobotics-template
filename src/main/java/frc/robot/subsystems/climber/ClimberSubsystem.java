@@ -18,7 +18,8 @@ public class ClimberSubsystem extends SubsystemBase {
 
   public ClimberSubsystem(ClimberIO io) {
     this.io = io;
-    io.configurePID(ClimberMap.kP, ClimberMap.kI, ClimberMap.kD); // TODO: change to correct PID Values
+    io.configurePID(
+        ClimberMap.kP, ClimberMap.kI, ClimberMap.kD); // TODO: change to correct PID Values
   }
 
   @Override

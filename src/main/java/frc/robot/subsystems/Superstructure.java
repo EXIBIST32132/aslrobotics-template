@@ -98,7 +98,7 @@ public class Superstructure extends SubsystemBase {
     if (flywheel != null) {
       registerCommand(
           "Run Flywheel",
-          startEnd(() -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop)
+          startEnd(() -> flywheel.runVelocity(flywheelSpeedInput::get), flywheel::stop)
               .withTimeout(5.0));
     }
   }
@@ -133,19 +133,26 @@ public class Superstructure extends SubsystemBase {
       case IDLING -> {
         if (intake != null) intake.stop();
         if (feeder != null) feeder.stop();
-        if (flywheel != null) flywheel.runVelocity(0);
+        if (flywheel != null) flywheel.runVelocity(() -> 0);
         if (pivot != null) pivot.stop();
-        if (leds != null)leds.setRunAlongCmd(
-                () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,
-                () -> Color.kBlack,
-                5,
-                1);
+        if (leds != null)
+          leds.setRunAlongCmd(
+              () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,
+              () -> Color.kBlack,
+              5,
+              1);
       }
       case INTAKING -> {
-        if(intake != null && feeder != null) intake.hasNote().onFalse(Commands.runOnce(()->{
-          intake.fast();
-          feeder.runVolt(12);
-        })).onTrue(setSuperStateCmd(IDLING));
+        if (intake != null && feeder != null)
+          intake
+              .hasNote()
+              .onFalse(
+                  Commands.runOnce(
+                      () -> {
+                        intake.fast();
+                        feeder.runVolt(12);
+                      }))
+              .onTrue(setSuperStateCmd(IDLING));
       }
       case PREP_SHOT -> {
         pivot.run(
@@ -158,19 +165,21 @@ public class Superstructure extends SubsystemBase {
                                 .get()
                                 .getTranslation()
                                 .getDistance(SPEAKER.getPose().getTranslation()))));
-        flywheel.runVelocityCmd(flywheelSpeedInput.get());
+        flywheel.runVelocityCmd(flywheelSpeedInput::get);
         feeder.hasNote().onFalse(feeder.runCMD(flywheelSpeedInput.get())).onTrue(feeder.stop());
       }
       case SHOOT -> {
         // add feeder
-        flywheel.runVelocity(1000);
+        flywheel.runVelocity(() -> 1000);
         feeder.runCMD(1000);
+        pivot.setPosition(() -> 1);
       }
     }
   }
 
   public Command setLEDBlinkingCmd(Color onColor, Color offColor, double frequency) {
-    if(leds !=null)return leds.setBlinkingCmd(onColor, offColor, frequency); else return null;
+    if (leds != null) return leds.setBlinkingCmd(onColor, offColor, frequency);
+    else return null;
   }
 
   public Trigger shooterVelocityGreater() {

@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.GlobalConstants;
+import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -31,7 +32,7 @@ public class FlywheelSubsystem extends SubsystemBase {
     OFF(0),
     SLOW(1000),
     MEDIUM(2500),
-    FAST(4000);
+    FAST(2000);
 
     final double velocity;
 
@@ -61,8 +62,8 @@ public class FlywheelSubsystem extends SubsystemBase {
         io.configurePID(0.5, 0.0, 0.0);
         break;
       default:
-        ffModel = new SimpleMotorFeedforward(0.0, 0.00015);
-        io.configurePID(0.00036, 0.0, 0.015);
+        ffModel = new SimpleMotorFeedforward(0.0, 0.0375);
+        io.configurePID(0.000036, 0.0, 0.015);
         break;
     }
 
@@ -88,17 +89,25 @@ public class FlywheelSubsystem extends SubsystemBase {
     io.setVoltage(volts);
   }
 
-  /** Run closed loop at the specified velocity. */
-  public void runVelocity(double velocityRPM) {
-    var velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(velocityRPM);
+  public void runVelocity(DoubleSupplier vel) {
+    var velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(vel.getAsDouble());
     io.setVelocity(velocityRadPerSec, ffModel.calculate(velocityRadPerSec));
 
     // Log flywheel setpoint
-    Logger.recordOutput("Flywheel/SetpointRPM", velocityRPM);
+    Logger.recordOutput("Flywheel/SetpointRPM", velocityRadPerSec);
   }
 
-  public Command runVelocityCmd(double velocityRPM) {
-    return Commands.run(() -> runVelocity(velocityRPM));
+  /** Run closed loop at the specified velocity. */
+  public void runVelocity(Velocity vel) {
+    runVelocity(() -> vel.velocity);
+  }
+
+  public Command runVelocityCmd(DoubleSupplier vel) {
+    return Commands.run(() -> runVelocity(vel));
+  }
+
+  public Command runVelocityCmd(Velocity vel) {
+    return Commands.run(() -> runVelocity(vel));
   }
 
   /** Stops the flywheel. */

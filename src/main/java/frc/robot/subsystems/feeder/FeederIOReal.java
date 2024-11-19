@@ -1,13 +1,11 @@
 package frc.robot.subsystems.feeder;
 
 import com.revrobotics.*;
-import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DigitalInput;
 
 public class FeederIOReal implements FeederIO {
   private final CANSparkMax feeder =
       new CANSparkMax(FeederMap.FEEDER_ID, CANSparkLowLevel.MotorType.kBrushless);
-  private final RelativeEncoder encoder = feeder.getEncoder();
   private final SparkPIDController pid = feeder.getPIDController();
   private final DigitalInput beamBrake = new DigitalInput(1);
 
@@ -30,7 +28,8 @@ public class FeederIOReal implements FeederIO {
         ffVolts,
         SparkPIDController.ArbFFUnits.kVoltage);
   }
-  public boolean hasNote(){
+
+  public boolean hasNote() {
     return beamBrake.get();
   }
 

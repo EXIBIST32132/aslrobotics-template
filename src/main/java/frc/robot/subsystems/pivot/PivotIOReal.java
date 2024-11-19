@@ -1,6 +1,7 @@
 package frc.robot.subsystems.pivot;
 
 import static frc.robot.subsystems.pivot.PivotMap.Hardware.*;
+import static java.lang.Math.PI;
 
 import com.revrobotics.*;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
@@ -40,7 +41,7 @@ public class PivotIOReal implements PivotIO {
   public void updateInputs(PivotIO.PivotIOInputs inputs) {
     inputs.leaderAppliedVolts = leader.getBusVoltage();
     inputs.leaderCurrentAmps = leader.getOutputCurrent();
-    inputs.leaderPositionRad = absEncoder.getAbsolutePosition();
+    inputs.leaderPositionRad = (absEncoder.get()) * 2 * PI;
     inputs.leaderVelocityRadPerSec = encoder.getVelocity();
   }
 
