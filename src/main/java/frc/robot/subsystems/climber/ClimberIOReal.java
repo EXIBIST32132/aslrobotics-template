@@ -25,17 +25,12 @@ public class ClimberIOReal implements ClimberIO {
 
     leftClimber.enableVoltageCompensation(12.0);
     rightClimber.enableVoltageCompensation(12.0);
+
     leftClimber.setSmartCurrentLimit(30);
     rightClimber.setSmartCurrentLimit(30);
 
     leftClimber.burnFlash();
     rightClimber.burnFlash();
-
-    // setting the positions that come out to be a certain conversion factor to be in meters
-    // TODO: find radius of neo motor
-    double radius = 1;
-    lEncoder.setPositionConversionFactor(2 * Math.PI * radius); // convert from rotations to meters
-    rEncoder.setPositionConversionFactor(2 * Math.PI * radius);
   }
 
   @Override
@@ -58,21 +53,26 @@ public class ClimberIOReal implements ClimberIO {
   }
 
   @Override
+  @Deprecated
   public void setVoltage(double volts) {
     leftClimber.setVoltage(volts);
     rightClimber.setVoltage(volts);
   }
 
   @Override
+  @Deprecated
   public void setLeftVoltage(double volts) {
     leftClimber.setVoltage(volts);
   }
 
   @Override
+  @Deprecated
   public void setRightVoltage(double volts) {
     rightClimber.setVoltage(volts);
   }
 
+  @Override
+  @Deprecated
   public void setHoming(boolean homingBool) {} // TODO: Figure out wtf is set Homing
 
   @Override
@@ -88,11 +88,13 @@ public class ClimberIOReal implements ClimberIO {
   }
 
   @Override
+  @Deprecated
   public boolean isLeftCurrentLimited() {
     return true;
   } // TODO: find a way to get current limits from a motor
 
   @Override
+  @Deprecated
   public boolean isRightCurrentLimited() {
     return true;
   } // TODO: find a way to get current limits from a motor

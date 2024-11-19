@@ -18,7 +18,7 @@ public final class PivotMap {
     // TODO change these after tuning!
     public static final Gains Gains =
         switch (ROBOT) {
-          case COMPBOT -> new Gains(0.0005, 0, 0.125, 0, 0.5, 0.83);
+          case COMPBOT -> new Gains(3, 0, 0.05, 0, 0.5, 1.3);
           case DEVBOT -> new Gains(0, 0, 0, 0, 0, 0);
           case SIMBOT -> new Gains(0, 0, 0, 0, 0, 0);
         };

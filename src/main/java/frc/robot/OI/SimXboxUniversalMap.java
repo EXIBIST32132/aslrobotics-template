@@ -54,11 +54,6 @@ public class SimXboxUniversalMap extends CommandXboxController implements Driver
   }
 
   @Override
-  public Trigger pivotToSpeaker() {
-    return button(5);
-  }
-
-  @Override
   public Trigger shoot() {
     return button(1);
   }
@@ -84,5 +79,10 @@ public class SimXboxUniversalMap extends CommandXboxController implements Driver
   public Command rumble() {
     return startEnd(
         () -> getHID().setRumble(kBothRumble, 1), () -> getHID().setRumble(kBothRumble, 0));
+  }
+
+  @Override
+  public Trigger prepShot() {
+    return null;
   }
 }

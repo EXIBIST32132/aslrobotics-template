@@ -9,29 +9,13 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class FeederSubsystem extends SubsystemBase {
 
-  public enum feederMode {
-    OFF(0.0), // feeder is off
-    FAST(12.0), // Maximum forward voltage
-    REVERSE(-12.0); // Maximum reverse voltage
-
-    final double voltage;
-
-    feederMode(double voltage) {
-      this.voltage = voltage;
-    }
-  }
-
   private final FeederIO io;
   private final FeederIO.FeederIOInputs inputs = new FeederIO.FeederIOInputs();
-  private feederMode currentState = feederMode.OFF;
 
-  // Debouncer to filter out noise or temporary spikes in current
-  private final Debouncer currentDebouncer =
-      new Debouncer(0.2, DebounceType.kRising); // 200ms debounce
 
   public FeederSubsystem(FeederIO io) {
     this.io = io;
-    this.io.configurePID(0.00036, 0, 0.015);
+    this.io.configurePID(FeederMap.kP, FeederMap.kP, FeederMap.kD);
   }
 
   @Override
@@ -40,34 +24,21 @@ public class FeederSubsystem extends SubsystemBase {
     // Add logging or telemetry if needed
   }
 
-  /** Set feeder to a specified mode using the enum */
-  public void setfeederMode(feederMode mode) {
-    currentState = mode;
-    io.setVoltage(mode.voltage);
+  // Stops Feeder
+  public Command stop(){
+    return Commands.runOnce(()->io.setVelocity(0,0));
   }
 
-  /** Stop the feeder */
-  public Command stop() {
-    return Commands.run(() -> setfeederMode(feederMode.OFF));
+  // runs with velocity
+  public Command runCMD(double vel) {
+    return Commands.runOnce(() -> io.setVelocity(vel, 0));
   }
 
-  /** Run the feeder in reverse */
-  public Command reverse() {
-    return Commands.run(() -> setfeederMode(feederMode.REVERSE));
+  public Command runVolt(double volt){
+    return Commands.runOnce(()-> io.setVoltage(volt));
   }
-
-  /** Run the feeder at maximum speed */
-  public Command fast() {
-    return Commands.run(() -> setfeederMode(feederMode.FAST));
-  }
-
   /** Trigger based on current draw (beam brake alternative using current detection) */
   public Trigger hasNote() {
-    return new Trigger(
-        () ->
-            this.currentState == feederMode.FAST // Detect only while feeder is running forward
-                && currentDebouncer.calculate(
-                    inputs.feederCurrentAmps > 40) // Debounced current detection
-        );
+    return new Trigger(io::hasNote); // TODO: Find port of beam break and set hasNote return type to actually return when broken
   }
 }

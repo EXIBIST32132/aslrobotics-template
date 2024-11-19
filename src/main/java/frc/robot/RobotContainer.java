@@ -38,7 +38,6 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
-import frc.robot.util.GamePieceVisualizer;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
@@ -84,7 +83,7 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-    superstructure.registerSuperstructureCharacterization(() -> autoChooser);
+    // superstructure.registerSuperstructureCharacterization(() -> autoChooser);
   }
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -92,15 +91,15 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    GamePieceVisualizer.setRobotPoseSupplier(drive::getPose);
-    GamePieceVisualizer.setTargetSupplier(
-        () ->
-            new Pose3d(
-                new Translation3d(
-                    SPEAKER.getPose().getTranslation().getX(),
-                    SPEAKER.getPose().getTranslation().getY(),
-                    2.1),
-                new Rotation3d()));
+    // GamePieceVisualizer.setRobotPoseSupplier(drive::getPose);
+    // GamePieceVisualizer.setTargetSupplier(
+    //     () ->
+    //         new Pose3d(
+    //             new Translation3d(
+    //                 SPEAKER.getPose().getTranslation().getX(),
+    //                 SPEAKER.getPose().getTranslation().getY(),
+    //                 2.1),
+    //             new Rotation3d()));
 
     // registerCharacterization();
 
@@ -119,10 +118,11 @@ public class RobotContainer {
     registerAiming();
     registerIntake();
     registerShooting();
-    superstructure.registerAutoCommands();
+    // superstructure.registerAutoCommands();
 
-    new Trigger(() -> Math.abs(drive.getNoteOffset()) < 5 && drive.getNoteOffset() != 0)
-        .whileTrue(superstructure.setLEDBlinkingCmd(Color.kYellow, Color.kBlack, 5));
+    if (drive != null)
+      new Trigger(() -> Math.abs(drive.getNoteOffset()) < 5 && drive.getNoteOffset() != 0)
+          .whileTrue(superstructure.setLEDBlinkingCmd(Color.kYellow, Color.kBlack, 5));
   }
 
   private void registerDrivetrain() {
@@ -168,7 +168,7 @@ public class RobotContainer {
   private void registerAiming() {
     if (SHOOTER_ENABLED && PIVOT_ENABLED && OPERATOR_ENABLED) {
       operator
-          .pivotToSpeaker()
+          .prepShot()
           .or(
               new Trigger(
                       () ->
@@ -190,15 +190,6 @@ public class RobotContainer {
           .shoot()
           .whileTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT))
           .whileFalse(superstructure.setSuperStateCmd(Superstructure.SuperStates.IDLING));
-
-      //   operator
-      //       .shoot()
-      //       .and(superstructure.shooterVelocityGreater())
-      //       .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
-
-      //   operator
-      //       .pivotToSpeaker()
-      //       .onTrue(superstructure.setSuperStateCmd(Superstructure.SuperStates.SHOOT));
     }
   }
 

@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ClimberSubsystem extends SubsystemBase {
   public enum ClimberMode {
-    ZERO(0.0), // Intake is off
+    ZERO(0.0), // Climber is off
     MAXHEIGHT(1.0); // Maximum Height
     final double height;
 
@@ -18,7 +18,8 @@ public class ClimberSubsystem extends SubsystemBase {
 
   public ClimberSubsystem(ClimberIO io) {
     this.io = io;
-    io.configurePID(1.0, 1.0, 1.0); // TODO: change to correct PID Values
+    io.configurePID(
+        ClimberMap.kP, ClimberMap.kI, ClimberMap.kD); // TODO: change to correct PID Values
   }
 
   @Override
@@ -28,7 +29,7 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   /** Set climber to a specified mode using the enum */
-  public void setClimberMode(ClimberMode mode) {
+  private void setClimberMode(ClimberMode mode) {
     // Set intake velocity based on the selected mode
     io.setPosition(mode.height);
   }

@@ -3,6 +3,7 @@ package frc.robot.subsystems.pivot;
 import static frc.robot.subsystems.pivot.PivotMap.Constants.Gains;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
@@ -48,6 +49,10 @@ public class PivotSubsystem extends SubsystemBase {
     // Log flywheel setpoint
     inputs.leaderTargetPositionRad = angleRad.getAsDouble();
     io.setPosition(angleRad.getAsDouble(), ffModel.calculate(angleRad.getAsDouble(), 0));
+  }
+
+  public Command setVoltage(double voltage) {
+    return this.run(() -> io.setVoltage(voltage));
   }
 
   public void stop() {

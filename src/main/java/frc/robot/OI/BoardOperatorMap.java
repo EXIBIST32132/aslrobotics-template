@@ -14,7 +14,7 @@ public class BoardOperatorMap extends CommandGenericHID implements OperatorMap {
   }
 
   @Override
-  public Trigger pivotToSpeaker() {
+  public Trigger prepShot() {
     return null;
   }
 
