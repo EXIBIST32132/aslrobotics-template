@@ -15,7 +15,12 @@ public class FeederIOSim implements FeederIO {
     return false;
   }
 
-
   @Override
   public void configurePID(double kP, double kI, double kD) {}
+
+  @Override
+  public void stop() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'stop'");
+  }
 }

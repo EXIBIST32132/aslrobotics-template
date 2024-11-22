@@ -63,6 +63,8 @@ public class IntakeSubsystem extends SubsystemBase {
 
   /** Trigger based on current draw (beam brake alternative using current detection) */
   public Trigger hasNote() {
-    return new Trigger(io::hasNote); // TODO: Find port of beam break and set hasNote return type to actually return when broken
+    return new Trigger(
+        io::hasNote); // TODO: Find port of beam break and set hasNote return type to actually
+    // return when broken
   }
 }

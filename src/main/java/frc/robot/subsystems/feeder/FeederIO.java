@@ -16,6 +16,9 @@ public interface FeederIO {
   public void setVoltage(final double volts);
 
   public void setVelocity(double radiansPerSecond, double ffVolts);
+
+  public void stop();
+
   public boolean hasNote();
 
   public void configurePID(double kP, double kI, double kD);
