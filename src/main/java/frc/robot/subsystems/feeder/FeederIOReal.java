@@ -1,8 +1,6 @@
 package frc.robot.subsystems.feeder;
 
 import com.revrobotics.*;
-import com.revrobotics.SparkPIDController.ArbFFUnits;
-import edu.wpi.first.math.util.Units;
 
 public class FeederIOReal implements FeederIO {
   private final CANSparkMax feeder =
@@ -20,30 +18,8 @@ public class FeederIOReal implements FeederIO {
     feeder.setVoltage(volts);
   }
 
-  @Override
-  public void setVelocity(double radiansPerSecond, double ffVolts) {
-    pid.setReference(
-        Units.radiansPerSecondToRotationsPerMinute(radiansPerSecond),
-        CANSparkBase.ControlType.kVelocity,
-        0,
-        ffVolts,
-        ArbFFUnits.kVoltage);
-  }
-
   public boolean hasNote() {
     // return beamBrake.get();
     return false;
-  }
-
-  @Override
-  public void configurePID(double kP, double kI, double kD) {
-    pid.setP(kP, 0);
-    pid.setI(kI, 0);
-    pid.setD(kD, 0);
-  }
-
-  @Override
-  public void stop() {
-    feeder.setVoltage(0.0);
   }
 }

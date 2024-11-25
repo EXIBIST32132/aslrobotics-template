@@ -48,7 +48,9 @@ public class PivotSubsystem extends SubsystemBase {
   public void setPosition(DoubleSupplier angleRad) {
     // Log flywheel setpoint
     inputs.leaderTargetPositionRad = angleRad.getAsDouble();
-    io.setPosition(angleRad.getAsDouble(), ffModel.calculate(angleRad.getAsDouble(), 0));
+    io.setPosition(
+        angleRad.getAsDouble(),
+        ffModel.calculate(angleRad.getAsDouble(), inputs.leaderVelocityRadPerSec));
   }
 
   public Command setVoltage(double voltage) {

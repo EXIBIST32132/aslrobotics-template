@@ -97,18 +97,13 @@ public class FlywheelSubsystem extends SubsystemBase {
     Logger.recordOutput("Flywheel/SetpointRPM", velocityRadPerSec);
   }
 
-  /** Run closed loop at the specified velocity. */
-  public void runVelocity(Velocity vel) {
-    runVelocity(() -> vel.velocity);
-  }
-
   public Command runVelocityCmd(DoubleSupplier vel) {
     return Commands.runOnce(() -> runVelocity(vel));
   }
 
   /** Stops the flywheel. */
-  public Command stop() {
-    return Commands.runOnce(() -> io.stop());
+  public void stop() {
+    io.stop();
   }
 
   /** Returns a command to run a quasistatic test in the specified direction. */

@@ -10,17 +10,17 @@ public class BoardOperatorMap extends CommandGenericHID implements OperatorMap {
 
   @Override
   public Trigger shoot() {
-    return null;
+    return button(5);
   }
 
   @Override
   public Trigger prepShot() {
-    return null;
+    return button(7);
   }
 
   // TODO: add intake button
   @Override
   public Trigger intake() {
-    return null;
+    return button(8);
   }
 }

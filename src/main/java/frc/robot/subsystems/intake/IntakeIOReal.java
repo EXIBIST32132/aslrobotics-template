@@ -21,25 +21,8 @@ public class IntakeIOReal implements IntakeIO {
   }
 
   @Override
-  public void setVelocity(double radiansPerSecond, double ffVolts) {
-    pid.setReference(
-        radiansPerSecond,
-        CANSparkBase.ControlType.kVelocity,
-        0,
-        ffVolts,
-        SparkPIDController.ArbFFUnits.kVoltage);
-  }
-
-  @Override
   public boolean hasNote() {
     // return beamBreak.get();
     return false;
-  }
-
-  @Override
-  public void configurePID(double kP, double kI, double kD) {
-    pid.setP(kP, 0);
-    pid.setI(kI, 0);
-    pid.setD(kD, 0);
   }
 }
