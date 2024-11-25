@@ -14,8 +14,8 @@ public final class Config {
     public static final boolean FEEDER_ENABLED = true;
     public static final boolean PIVOT_ENABLED = true;
     public static final boolean SHOOTER_ENABLED = true;
-    public static final boolean CLIMBER_ENABLED = true;
-    public static final boolean LEDS_ENABLED = true;
+    public static final boolean CLIMBER_ENABLED = false;
+    public static final boolean LEDS_ENABLED = false;
 
     public static final boolean PROTOTYPES_ENABLED = false;
   }

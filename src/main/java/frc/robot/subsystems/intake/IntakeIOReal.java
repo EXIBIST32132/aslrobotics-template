@@ -1,7 +1,6 @@
 package frc.robot.subsystems.intake;
 
 import com.revrobotics.*;
-import edu.wpi.first.wpilibj.DigitalInput;
 
 public class IntakeIOReal implements IntakeIO {
   private final CANSparkMax intake =
@@ -9,7 +8,7 @@ public class IntakeIOReal implements IntakeIO {
   private final RelativeEncoder Encoder = intake.getEncoder();
   private final SparkPIDController pid = intake.getPIDController();
 
-  private final DigitalInput beamBreak = new DigitalInput(0);
+  // private final DigitalInput beamBreak = new DigitalInput(0);
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
@@ -30,9 +29,11 @@ public class IntakeIOReal implements IntakeIO {
         ffVolts,
         SparkPIDController.ArbFFUnits.kVoltage);
   }
+
   @Override
-  public boolean hasNote(){
-    return beamBreak.get();
+  public boolean hasNote() {
+    // return beamBreak.get();
+    return false;
   }
 
   @Override

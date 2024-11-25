@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import static com.pathplanner.lib.auto.NamedCommands.registerCommand;
-import static frc.robot.GlobalConstants.FieldMap.Coordinates.SPEAKER;
 import static frc.robot.GlobalConstants.MODE;
 import static frc.robot.subsystems.Superstructure.SuperStates.IDLING;
 
@@ -132,8 +131,8 @@ public class Superstructure extends SubsystemBase {
     switch (currentState) {
       case IDLING -> {
         if (intake != null) intake.stop();
-        if (feeder != null) feeder.stop();
-        if (flywheel != null) flywheel.runVelocity(() -> 0);
+        if (feeder != null) feeder.runVolts(0);
+        if (flywheel != null) flywheel.runVelocityCmd(() -> 0);
         if (pivot != null) pivot.stop();
         if (leds != null)
           leds.setRunAlongCmd(
@@ -143,36 +142,17 @@ public class Superstructure extends SubsystemBase {
               1);
       }
       case INTAKING -> {
-        if (intake != null && feeder != null)
-          intake
-              .hasNote()
-              .onFalse(
-                  Commands.runOnce(
-                      () -> {
-                        intake.fast();
-                        feeder.runVolt(12);
-                      }))
-              .onTrue(setSuperStateCmd(IDLING));
+        if (intake != null) intake.fast();
+        if (feeder != null) feeder.runVolts(0.5);
       }
       case PREP_SHOT -> {
-        pivot.run(
-            () ->
-                pivot.setPosition(
-                    () ->
-                        Math.atan2(
-                            2.1,
-                            drivePoseSupplier
-                                .get()
-                                .getTranslation()
-                                .getDistance(SPEAKER.getPose().getTranslation()))));
-        flywheel.runVelocityCmd(flywheelSpeedInput::get);
-        feeder.hasNote().onFalse(feeder.runCMD(flywheelSpeedInput.get())).onTrue(feeder.stop());
+        flywheel.runVelocityCmd(() -> 2000);
+        pivot.setPosition(() -> 0);
       }
       case SHOOT -> {
-        // add feeder
-        flywheel.runVelocity(() -> 1000);
-        feeder.runCMD(1000);
-        pivot.setPosition(() -> 1);
+        feeder.runVolts(5);
+        pivot.setPosition(() -> -2);
+        flywheel.runVelocityCmd(() -> 2000);
       }
     }
   }

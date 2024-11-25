@@ -90,7 +90,7 @@ public class FlywheelSubsystem extends SubsystemBase {
   }
 
   public void runVelocity(DoubleSupplier vel) {
-    var velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(vel.getAsDouble());
+    double velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(vel.getAsDouble());
     io.setVelocity(velocityRadPerSec, ffModel.calculate(velocityRadPerSec));
 
     // Log flywheel setpoint
@@ -103,16 +103,12 @@ public class FlywheelSubsystem extends SubsystemBase {
   }
 
   public Command runVelocityCmd(DoubleSupplier vel) {
-    return Commands.run(() -> runVelocity(vel));
-  }
-
-  public Command runVelocityCmd(Velocity vel) {
-    return Commands.run(() -> runVelocity(vel));
+    return Commands.runOnce(() -> runVelocity(vel));
   }
 
   /** Stops the flywheel. */
   public Command stop() {
-    return Commands.run(() -> io.stop());
+    return Commands.runOnce(() -> io.stop());
   }
 
   /** Returns a command to run a quasistatic test in the specified direction. */

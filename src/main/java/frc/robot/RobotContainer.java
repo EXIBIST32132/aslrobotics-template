@@ -120,7 +120,7 @@ public class RobotContainer {
     registerShooting();
     // superstructure.registerAutoCommands();
 
-    if (drive != null)
+    if (drive != null && LEDS_ENABLED)
       new Trigger(() -> Math.abs(drive.getNoteOffset()) < 5 && drive.getNoteOffset() != 0)
           .whileTrue(superstructure.setLEDBlinkingCmd(Color.kYellow, Color.kBlack, 5));
   }
