@@ -10,7 +10,7 @@ public final class PivotMap {
 
     public static final int LEFT_PIVOT_ID = 31;
     public static final int RIGHT_PIVOT_ID = 32;
-    public static final int ENCODER_PORT = 1;
+    public static final int ENCODER_PORT = 2;
   }
 
   public static final class Constants {
@@ -22,6 +22,8 @@ public final class PivotMap {
           case DEVBOT -> new Gains(0, 0, 0, 0, 0, 0);
           case SIMBOT -> new Gains(0, 0, 0, 0, 0, 0);
         };
+
+    public static final double ABSOLUTE_ENCODER_OFFSET = 0.38;
 
     public record Gains(double kP, double kI, double kD, double kS, double kV, double kG) {}
   }

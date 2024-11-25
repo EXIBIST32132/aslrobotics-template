@@ -1,125 +1,74 @@
 package frc.robot.subsystems.feeder;
 
-import static edu.wpi.first.units.Units.Volts;
-
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.GlobalConstants;
-import java.util.function.DoubleSupplier;
-import org.littletonrobotics.junction.AutoLogOutput;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.intake.IntakeSubsystem.IntakeMode;
 import org.littletonrobotics.junction.Logger;
 
 public class FeederSubsystem extends SubsystemBase {
 
-  public enum Velocity {
-    OFF(0),
-    SLOW(1000),
-    MEDIUM(2500),
-    FAST(2000);
+  public enum IntakeMode {
+    OFF(0.0), // Intake is off
+    FORWARD(12.0), // Maximum forward voltage
+    REVERSE(-12.0); // Maximum reverse voltage
 
-    final double velocity;
+    final double voltage;
 
-    Velocity(double velocityRadPerSec) {
-      this.velocity = velocityRadPerSec;
+    IntakeMode(double voltage) {
+      this.voltage = voltage;
     }
   }
 
   private final FeederIO io;
+  private final String name;
   private final FeederIOInputsAutoLogged inputs = new FeederIOInputsAutoLogged();
-  private final SimpleMotorFeedforward ffModel;
-  private final SysIdRoutine sysId;
+  private IntakeMode currentState = IntakeMode.OFF;
 
-  /** Creates a new Flywheel. */
-  public FeederSubsystem(FeederIO io) {
+  // Debouncer to filter out noise or temporary spikes in current
+  private final Debouncer currentDebouncer =
+      new Debouncer(0.4, DebounceType.kFalling); // 200ms debounce
+
+  public FeederSubsystem(String name, FeederIO io) {
+    this.name = name;
     this.io = io;
+  }
 
-    // Switch constants based on mode (the physics simulator is treated as a
-    // separate robot with different tuning)
-    switch (GlobalConstants.MODE) {
-      case REPLAY:
-        ffModel = new SimpleMotorFeedforward(0.1, 0.05);
-        io.configurePID(1.0, 0.0, 0.0);
-        break;
-      case SIM:
-        ffModel = new SimpleMotorFeedforward(0.0, 0.03);
-        io.configurePID(0.5, 0.0, 0.0);
-        break;
-      default:
-        ffModel = new SimpleMotorFeedforward(0.0, 0.0375);
-        io.configurePID(0.000036, 0.0, 0.015);
-        break;
-    }
-
-    // Configure SysId
-    sysId =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                null,
-                null,
-                null,
-                state -> Logger.recordOutput("Flywheel/SysIdState", state.toString())),
-            new SysIdRoutine.Mechanism(voltage -> runVolts(voltage.in(Volts)), null, this));
+  /** Trigger based on current draw (beam brake alternative using current detection) */
+  public Trigger hasNote() {
+    return new Trigger(
+        () -> io.hasNote() || currentDebouncer.calculate(inputs.feederCurrentAmps > 40));
   }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("Flywheel", inputs);
+    Logger.processInputs("Feeder", inputs);
+
+    // Add logging or telemetry if needed
+    io.setVoltage(currentState.voltage);
   }
 
-  /** Run open loop at the specified voltage. */
-  public void runVolts(double volts) {
-    io.setVoltage(volts);
+  /** Set intake to a specified mode using the enum */
+  private Command setFeederMode(IntakeMode mode) {
+    return Commands.runOnce(() -> currentState = mode, this);
   }
 
-  public void runVelocity(DoubleSupplier vel) {
-    var velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(vel.getAsDouble());
-    io.setVelocity(velocityRadPerSec, ffModel.calculate(velocityRadPerSec));
-
-    // Log flywheel setpoint
-    Logger.recordOutput("Flywheel/SetpointRPM", velocityRadPerSec);
-  }
-
-  /** Run closed loop at the specified velocity. */
-  public void runVelocity(Velocity vel) {
-    runVelocity(() -> vel.velocity);
-  }
-
-  public Command runVelocityCmd(DoubleSupplier vel) {
-    return Commands.run(() -> runVelocity(vel));
-  }
-
-  public Command runVelocityCmd(Velocity vel) {
-    return Commands.run(() -> runVelocity(vel));
-  }
-
-  /** Stops the flywheel. */
+  /** Stop the intake */
   public Command stop() {
-    return Commands.run(() -> io.stop());
+    return setFeederMode(IntakeMode.OFF);
   }
 
-  /** Returns a command to run a quasistatic test in the specified direction. */
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return sysId.quasistatic(direction);
+  /** Run the intake in reverse */
+  public Command reverse() {
+    return setFeederMode(IntakeMode.REVERSE);
   }
 
-  /** Returns a command to run a dynamic test in the specified direction. */
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return sysId.dynamic(direction);
-  }
-
-  /** Returns the current velocity in RPM. */
-  @AutoLogOutput
-  public double getVelocityRPM() {
-    return Units.radiansPerSecondToRotationsPerMinute(inputs.feederVelocityRadPerSecond);
-  }
-
-  /** Returns the current velocity in radians per second. */
-  public double getCharacterizationVelocity() {
-    return inputs.feederVelocityRadPerSecond;
+  /** Run the intake at maximum speed */
+  public Command forward() {
+    return setFeederMode(IntakeMode.FORWARD);
   }
 }

@@ -27,7 +27,7 @@ public final class Config {
 
     public static final boolean OPERATOR_ENABLED = true;
     public static final int OPERATOR_PORT = 1;
-    public static final boolean JOYSTICK_OPERATOR_ENABLED = true;
+    public static final boolean JOYSTICK_OPERATOR_ENABLED = false;
     public static final boolean BOARD_OPERATOR_ENABLED = !JOYSTICK_OPERATOR_ENABLED;
 
     public static DriverMap getDriverController() {

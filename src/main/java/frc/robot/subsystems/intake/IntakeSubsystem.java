@@ -6,12 +6,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.littletonrobotics.junction.Logger;
 
 public class IntakeSubsystem extends SubsystemBase {
 
   public enum IntakeMode {
     OFF(0.0), // Intake is off
-    FAST(12.0), // Maximum forward voltage
+    FORWARD(12.0), // Maximum forward voltage
     REVERSE(-12.0); // Maximum reverse voltage
 
     final double voltage;
@@ -22,49 +23,52 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   private final IntakeIO io;
-  private final IntakeIO.IntakeIOInputs inputs = new IntakeIO.IntakeIOInputs();
+  private final String name;
+  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
   private IntakeMode currentState = IntakeMode.OFF;
 
   // Debouncer to filter out noise or temporary spikes in current
   private final Debouncer currentDebouncer =
-      new Debouncer(0.2, DebounceType.kRising); // 200ms debounce
+      new Debouncer(0.4, DebounceType.kFalling); // 200ms debounce
 
-  public IntakeSubsystem(IntakeIO io) {
+  public IntakeSubsystem(String name, IntakeIO io) {
+    this.name = name;
     this.io = io;
-    this.io.configurePID(1, 1, 1); // TODO: Find PID Values
-  }
-
-  @Override
-  public void periodic() {
-    io.updateInputs(inputs);
-    // Add logging or telemetry if needed
-  }
-
-  /** Set intake to a specified mode using the enum */
-  public void setIntakeMode(IntakeMode mode) {
-    currentState = mode;
-    io.setVoltage(mode.voltage);
-  }
-
-  /** Stop the intake */
-  public Command stop() {
-    return Commands.run(() -> setIntakeMode(IntakeMode.OFF));
-  }
-
-  /** Run the intake in reverse */
-  public Command reverse() {
-    return Commands.run(() -> setIntakeMode(IntakeMode.REVERSE));
-  }
-
-  /** Run the intake at maximum speed */
-  public Command fast() {
-    return Commands.run(() -> setIntakeMode(IntakeMode.FAST));
   }
 
   /** Trigger based on current draw (beam brake alternative using current detection) */
   public Trigger hasNote() {
     return new Trigger(
-        io::hasNote); // TODO: Find port of beam break and set hasNote return type to actually
-    // return when broken
+        () -> io.hasNote() || currentDebouncer.calculate(inputs.intakeCurrentAmps > 40));
+  }
+  ;
+
+  @Override
+  public void periodic() {
+    io.updateInputs(inputs);
+    Logger.processInputs("Intake", inputs);
+
+    // Add logging or telemetry if needed
+    io.setVoltage(currentState.voltage);
+  }
+
+  /** Set intake to a specified mode using the enum */
+  private Command setIntakeMode(IntakeMode mode) {
+    return Commands.runOnce(() -> currentState = mode, this);
+  }
+
+  /** Stop the intake */
+  public Command stop() {
+    return setIntakeMode(IntakeMode.OFF);
+  }
+
+  /** Run the intake in reverse */
+  public Command reverse() {
+    return setIntakeMode(IntakeMode.REVERSE);
+  }
+
+  /** Run the intake at maximum speed */
+  public Command forward() {
+    return setIntakeMode(IntakeMode.FORWARD);
   }
 }

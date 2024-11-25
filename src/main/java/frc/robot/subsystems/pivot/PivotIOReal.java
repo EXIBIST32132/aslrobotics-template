@@ -1,9 +1,12 @@
 package frc.robot.subsystems.pivot;
 
+import static frc.robot.subsystems.pivot.PivotMap.Constants.ABSOLUTE_ENCODER_OFFSET;
 import static frc.robot.subsystems.pivot.PivotMap.Hardware.*;
 import static java.lang.Math.PI;
 
 import com.revrobotics.*;
+
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
 public class PivotIOReal implements PivotIO {
@@ -12,7 +15,7 @@ public class PivotIOReal implements PivotIO {
       follower = new CANSparkFlex(RIGHT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless);
   private final RelativeEncoder encoder = leader.getEncoder();
   private final DutyCycleEncoder absEncoder = new DutyCycleEncoder(ENCODER_PORT);
-  private final SparkPIDController pid = leader.getPIDController();
+  private final ProfiledPIDController pid = new ProfiledPIDController();
 
   public PivotIOReal() {
     leader.restoreFactoryDefaults();
@@ -35,6 +38,8 @@ public class PivotIOReal implements PivotIO {
 
     leader.burnFlash();
     follower.burnFlash();
+
+    absEncoder.setPositionOffset(ABSOLUTE_ENCODER_OFFSET);
   }
 
   @Override
@@ -46,9 +51,9 @@ public class PivotIOReal implements PivotIO {
   }
 
   @Override
-  public void setPosition(double climberPositionRad, double ffVolts) {
-    pid.setReference(
-        climberPositionRad,
+  public void setPosition(double pivotPositionRad, double ffVolts) {
+    pid.(
+        pivotPositionRad,
         CANSparkBase.ControlType.kPosition,
         0,
         ffVolts,

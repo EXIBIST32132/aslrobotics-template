@@ -37,17 +37,7 @@ public class IntakeIOSim implements IntakeIO {
   }
 
   @Override
-  public void setVelocity(double velocityRadPerSec, double ffVolts) {
-    closedLoop = true;
-    pid.setSetpoint(velocityRadPerSec);
-    this.ffVolts = ffVolts;
-  }
-
-  @Override
   public boolean hasNote() {
     return false;
   }
-
-  @Override
-  public void configurePID(double kP, double kI, double kD) {}
 }

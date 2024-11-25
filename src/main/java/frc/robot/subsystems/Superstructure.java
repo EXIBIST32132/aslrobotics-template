@@ -61,15 +61,15 @@ public class Superstructure extends SubsystemBase {
   private final IntakeSubsystem intake =
       Config.Subsystems.INTAKE_ENABLED
           ? (MODE == GlobalConstants.RobotMode.REAL
-              ? new IntakeSubsystem(new IntakeIOReal())
-              : new IntakeSubsystem(new IntakeIOSim()))
+              ? new IntakeSubsystem("Bomboclat", new IntakeIOReal())
+              : new IntakeSubsystem("SimBoclat", new IntakeIOSim()))
           : null;
 
   private final FeederSubsystem feeder =
       Config.Subsystems.FEEDER_ENABLED
           ? (MODE == GlobalConstants.RobotMode.REAL
-              ? new FeederSubsystem(new FeederIOReal())
-              : new FeederSubsystem(new FeederIOSim()))
+              ? new FeederSubsystem("FeeterFinder", new FeederIOReal())
+              : new FeederSubsystem("SimFeeterFinder", new FeederIOSim()))
           : null;
 
   private final ClimberSubsystem climber =
@@ -131,9 +131,9 @@ public class Superstructure extends SubsystemBase {
     switch (currentState) {
       case IDLING -> {
         if (intake != null) intake.stop();
-        if (feeder != null) feeder.runVolts(0);
-        if (flywheel != null) flywheel.runVelocityCmd(() -> 0);
-        if (pivot != null) pivot.stop();
+        if (feeder != null) feeder.forward();
+        if (flywheel != null) flywheel.runVelocity(() -> 0);
+        if (pivot != null) pivot.setPosition(() -> 0.4);
         if (leds != null)
           leds.setRunAlongCmd(
               () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,
@@ -142,17 +142,15 @@ public class Superstructure extends SubsystemBase {
               1);
       }
       case INTAKING -> {
-        if (intake != null) intake.fast();
-        if (feeder != null) feeder.runVolts(0.5);
+        if (intake != null) intake.forward();
+        if (feeder != null) feeder.forward();
       }
       case PREP_SHOT -> {
-        flywheel.runVelocityCmd(() -> 2000);
-        pivot.setPosition(() -> 0);
+        if (flywheel != null) flywheel.runVelocity(() -> 2000);
+        if (pivot != null) pivot.setPosition(() -> 1);
       }
       case SHOOT -> {
-        feeder.runVolts(5);
-        pivot.setPosition(() -> -2);
-        flywheel.runVelocityCmd(() -> 2000);
+        if (feeder != null) feeder.forward();
       }
     }
   }
