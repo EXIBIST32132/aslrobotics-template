@@ -34,7 +34,6 @@ public class PivotSubsystem extends SubsystemBase {
   public PivotSubsystem(PivotIO io) {
     this.io = io;
     ffModel = new ArmFeedforward(kS.get(), kG.get(), kV.get());
-    io.configurePID(kP.get(), kI.get(), kD.get());
 
     actualVisualizer = new PivotVisualizer("ActualVisualizer");
     targetVisualizer = new PivotVisualizer("TargetVisualizer");
@@ -48,9 +47,7 @@ public class PivotSubsystem extends SubsystemBase {
   public void setPosition(DoubleSupplier angleRad) {
     // Log flywheel setpoint
     inputs.leaderTargetPositionRad = angleRad.getAsDouble();
-    io.setPosition(
-        angleRad.getAsDouble(),
-        ffModel.calculate(angleRad.getAsDouble(), inputs.leaderVelocityRadPerSec));
+    io.setPosition(angleRad.getAsDouble());
   }
 
   public Command setVoltage(double voltage) {

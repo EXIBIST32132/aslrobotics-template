@@ -2,6 +2,8 @@ package frc.robot.subsystems.pivot;
 
 import static frc.robot.GlobalConstants.ROBOT;
 
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+
 public final class PivotMap {
 
   public static final class Sim {}
@@ -22,8 +24,12 @@ public final class PivotMap {
           case DEVBOT -> new Gains(0, 0, 0, 0, 0, 0);
           case SIMBOT -> new Gains(0, 0, 0, 0, 0, 0);
         };
-
+    public static final double kIZone = 0.08;
+    public static final double POSITION_TOLERANCE = 0.05;
+    public static final double VELOCITY_TOLERANCE = 0.1;
     public static final double ABSOLUTE_ENCODER_OFFSET = 0.38;
+    public static final TrapezoidProfile.Constraints TrapProf =
+        new TrapezoidProfile.Constraints(5, 10);
 
     public record Gains(double kP, double kI, double kD, double kS, double kV, double kG) {}
   }
