@@ -47,19 +47,13 @@ public class PivotIOSim implements PivotIO {
   }
 
   @Override
-  public void setPosition(double angleRads, double ffVolts) {
+  public void setPosition(double angleRads) {
     closedLoop = true;
     pid.setSetpoint(angleRads);
-    this.ffVolts = ffVolts;
   }
 
   @Override
   public void stop() {
     setVoltage(0.0);
-  }
-
-  @Override
-  public void configurePID(double kP, double kI, double kD) {
-    pid.setPID(kP, kI, kD);
   }
 }

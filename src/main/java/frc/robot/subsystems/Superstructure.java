@@ -133,7 +133,7 @@ public class Superstructure extends SubsystemBase {
         if (intake != null) intake.stop();
         if (feeder != null) feeder.forward();
         if (flywheel != null) flywheel.runVelocity(() -> 0);
-        if (pivot != null) pivot.setPosition(() -> 0.4);
+        if (pivot != null) pivot.setPosition(()->0);
         if (leds != null)
           leds.setRunAlongCmd(
               () -> AllianceFlipUtil.shouldFlip() ? Color.kRed : Color.kBlue,

@@ -11,14 +11,14 @@ import org.littletonrobotics.junction.Logger;
 
 public class FeederSubsystem extends SubsystemBase {
 
-  public enum IntakeMode {
+  public enum FeederMode {
     OFF(0.0), // Intake is off
     FORWARD(12.0), // Maximum forward voltage
     REVERSE(-12.0); // Maximum reverse voltage
 
     final double voltage;
 
-    IntakeMode(double voltage) {
+    FeederMode(double voltage) {
       this.voltage = voltage;
     }
   }
@@ -26,7 +26,7 @@ public class FeederSubsystem extends SubsystemBase {
   private final FeederIO io;
   private final String name;
   private final FeederIOInputsAutoLogged inputs = new FeederIOInputsAutoLogged();
-  private IntakeMode currentState = IntakeMode.OFF;
+  private FeederMode currentState = FeederMode.OFF;
 
   // Debouncer to filter out noise or temporary spikes in current
   private final Debouncer currentDebouncer =
@@ -53,22 +53,22 @@ public class FeederSubsystem extends SubsystemBase {
   }
 
   /** Set intake to a specified mode using the enum */
-  private Command setFeederMode(IntakeMode mode) {
+  private Command setFeederMode(FeederMode mode) {
     return Commands.runOnce(() -> currentState = mode, this);
   }
 
   /** Stop the intake */
   public Command stop() {
-    return setFeederMode(IntakeMode.OFF);
+    return setFeederMode(FeederMode.OFF);
   }
 
   /** Run the intake in reverse */
   public Command reverse() {
-    return setFeederMode(IntakeMode.REVERSE);
+    return setFeederMode(FeederMode.REVERSE);
   }
 
   /** Run the intake at maximum speed */
   public Command forward() {
-    return setFeederMode(IntakeMode.FORWARD);
+    return setFeederMode(FeederMode.FORWARD);
   }
 }

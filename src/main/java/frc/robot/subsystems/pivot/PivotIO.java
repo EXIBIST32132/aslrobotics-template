@@ -28,11 +28,8 @@ public interface PivotIO {
   public void setVoltage(double volts);
 
   /** Run closed loop at the specified velocity. */
-  public void setPosition(double angleRad, double ffVolts);
+  public void setPosition(double angleRad);
 
   /** Stop in open loop. */
   public void stop();
-
-  /** Set position PID constants. */
-  public void configurePID(double kP, double kI, double kD);
 }
