@@ -33,27 +33,16 @@ public class PivotIOSim implements PivotIO {
     }
     sim.update(0.02);
 
-    inputs.leaderPositionRad = sim.getAngleRads();
-    inputs.leaderVelocityRadPerSec = sim.getVelocityRadPerSec();
-    inputs.leaderAppliedVolts = appliedVolts;
-    inputs.leaderCurrentAmps = sim.getCurrentDrawAmps();
+    inputs.positionRad = sim.getAngleRads();
+    inputs.velocityRadPerSec = sim.getVelocityRadPerSec();
+    inputs.appliedVolts = appliedVolts;
+    inputs.currentAmps = sim.getCurrentDrawAmps();
   }
 
   @Override
   public void setVoltage(double volts) {
     closedLoop = false;
-    appliedVolts = volts;
+    appliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
     sim.setInputVoltage(volts);
-  }
-
-  @Override
-  public void setPosition(double angleRads) {
-    closedLoop = true;
-    pid.setSetpoint(angleRads);
-  }
-
-  @Override
-  public void stop() {
-    setVoltage(0.0);
   }
 }

@@ -5,11 +5,8 @@ import static frc.robot.subsystems.pivot.PivotMap.Hardware.*;
 import static java.lang.Math.PI;
 
 import com.revrobotics.*;
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj2.command.ProfiledPIDSubsystem;
 
 public class PivotIOReal implements PivotIO {
   private final CANSparkFlex
@@ -17,7 +14,6 @@ public class PivotIOReal implements PivotIO {
       follower = new CANSparkFlex(RIGHT_PIVOT_ID, CANSparkLowLevel.MotorType.kBrushless);
   private final RelativeEncoder encoder = leader.getEncoder();
   private final DutyCycleEncoder absEncoder = new DutyCycleEncoder(ENCODER_PORT);
-  private final PivotMotor pivot = new PivotMotor(this);
 
   public PivotIOReal() {
     leader.restoreFactoryDefaults();
@@ -40,21 +36,15 @@ public class PivotIOReal implements PivotIO {
 
     leader.burnFlash();
     follower.burnFlash();
-
-    absEncoder.setPositionOffset(ABSOLUTE_ENCODER_OFFSET);
   }
 
   @Override
   public void updateInputs(PivotIO.PivotIOInputs inputs) {
-    inputs.leaderAppliedVolts = leader.getBusVoltage();
-    inputs.leaderCurrentAmps = leader.getOutputCurrent();
-    inputs.leaderPositionRad = (absEncoder.get()) * 2 * PI;
-    inputs.leaderVelocityRadPerSec = encoder.getVelocity();
-  }
-
-  @Override
-  public void setPosition(double pivotPositionRad) {
-    pivot.setPosition(pivotPositionRad);
+    inputs.appliedVolts = leader.getBusVoltage();
+    inputs.currentAmps = leader.getOutputCurrent();
+    inputs.positionRad = leader.getEncoder().getPosition();
+    inputs.absolutePositionRad = (absEncoder.get() + ABSOLUTE_ENCODER_OFFSET) * 2 * PI;
+    inputs.velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(encoder.getVelocity());
   }
 
   @Override
@@ -62,52 +52,7 @@ public class PivotIOReal implements PivotIO {
     leader.setVoltage(volts);
   }
 
-  @Override
-  public void stop() {
-    leader.setVoltage(0);
-    follower.setVoltage(0);
-  }
-
   public double getEncoderPosition() {
     return absEncoder.getAbsolutePosition() + absEncoder.getPositionOffset();
-  }
-}
-
-class PivotMotor extends ProfiledPIDSubsystem {
-  private PivotIOReal io;
-  private ArmFeedforward pivotFeedforward =
-      new ArmFeedforward(0, PivotMap.Constants.Gains.kG(), PivotMap.Constants.Gains.kV(), 0);
-
-  public PivotMotor(PivotIOReal io) {
-    super(
-        new ProfiledPIDController(
-            PivotMap.Constants.Gains.kP(),
-            PivotMap.Constants.Gains.kI(),
-            PivotMap.Constants.Gains.kD(),
-            PivotMap.Constants.TrapProf));
-    // From last years code, how they made the pivot
-    this.io = io;
-    getController().setIZone(PivotMap.Constants.kIZone);
-    getController()
-        .setTolerance(PivotMap.Constants.POSITION_TOLERANCE, PivotMap.Constants.VELOCITY_TOLERANCE);
-
-    setGoal(PivotMap.Constants.ABSOLUTE_ENCODER_OFFSET);
-    enable();
-  }
-
-  @Override
-  protected void useOutput(double v, TrapezoidProfile.State state) {
-    var feedforward = pivotFeedforward.calculate(state.position, state.velocity);
-
-    io.setVoltage(v + feedforward);
-  }
-
-  @Override
-  protected double getMeasurement() {
-    return io.getEncoderPosition();
-  }
-
-  public void setPosition(double setpoint) {
-    setGoal(setpoint + ABSOLUTE_ENCODER_OFFSET);
   }
 }
