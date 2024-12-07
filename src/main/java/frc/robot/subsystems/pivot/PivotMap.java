@@ -24,8 +24,8 @@ public final class PivotMap {
           case DEVBOT -> new Gains(0, 0, 0, 0, 0, 0);
           case SIMBOT -> new Gains(0, 0, 0, 0, 0, 0);
         };
-    public static final double MAX_ANGLE_RAD = 2.01;
-    public static final double MIN_ANGLE_RAD = 0.267;
+    public static final double MAX_ANGLE_RAD = 1;
+    public static final double MIN_ANGLE_RAD = 0;
     public static TrapezoidProfile.Constraints profileConstraints =
         new TrapezoidProfile.Constraints(200, 1);
     public static final double kIZone = 0.08;

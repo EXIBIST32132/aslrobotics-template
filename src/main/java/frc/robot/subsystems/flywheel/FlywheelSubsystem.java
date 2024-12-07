@@ -20,6 +20,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.GlobalConstants;
 import java.util.function.DoubleSupplier;
@@ -28,23 +29,14 @@ import org.littletonrobotics.junction.Logger;
 
 public class FlywheelSubsystem extends SubsystemBase {
 
-  public enum Velocity {
-    OFF(0),
-    SLOW(1000),
-    MEDIUM(2500),
-    FAST(2000);
-
-    final double velocity;
-
-    Velocity(double velocityRadPerSec) {
-      this.velocity = velocityRadPerSec;
-    }
-  }
-
   private final FlywheelIO io;
   private final FlywheelIOInputsAutoLogged inputs = new FlywheelIOInputsAutoLogged();
   private final SimpleMotorFeedforward ffModel;
   private final SysIdRoutine sysId;
+
+  private double targetVelocity;
+
+  public final Trigger atGoal;
 
   /** Creates a new Flywheel. */
   public FlywheelSubsystem(FlywheelIO io) {
@@ -66,6 +58,8 @@ public class FlywheelSubsystem extends SubsystemBase {
         io.configurePID(0.000036, 0.0, 0.015);
         break;
     }
+
+    atGoal = new Trigger(() -> this.getVelocityRPM() > targetVelocity).debounce(0.3);
 
     // Configure SysId
     sysId =
@@ -89,21 +83,25 @@ public class FlywheelSubsystem extends SubsystemBase {
     io.setVoltage(volts);
   }
 
-  public void runVelocity(DoubleSupplier vel) {
+  private void runVelocity(DoubleSupplier vel) {
     double velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(vel.getAsDouble());
-    io.setVelocity(velocityRadPerSec, ffModel.calculate(velocityRadPerSec));
+    io.setVelocity(targetVelocity = velocityRadPerSec, ffModel.calculate(velocityRadPerSec));
 
     // Log flywheel setpoint
-    Logger.recordOutput("Flywheel/SetpointRPM", velocityRadPerSec);
-  }
-
-  public Command runVelocityCmd(DoubleSupplier vel) {
-    return Commands.runOnce(() -> runVelocity(vel));
+    Logger.recordOutput("Flywheel/SetpointRPM", targetVelocity);
   }
 
   /** Stops the flywheel. */
-  public void stop() {
-    io.stop();
+  public Command setIdle() {
+    return Commands.runOnce(() -> runVelocity(() -> 0));
+  }
+
+  public Command setSubwoofer() {
+    return Commands.runOnce(() -> runVelocity(() -> 2000));
+  }
+
+  public Command setAiming() {
+    return Commands.runOnce(() -> {});
   }
 
   /** Returns a command to run a quasistatic test in the specified direction. */
